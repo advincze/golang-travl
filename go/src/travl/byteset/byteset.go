@@ -25,13 +25,14 @@ func (bs *ByteSet) SetFromTo(from, to uint, value byte) (*ByteSet, error) {
 		return bs, err
 	}
 	bs.extendIfNeeded(to)
-	for i := from; i < to; i++ {
+	for i := from; i <= to; i++ {
 		bs.set[i] = value
 	}
 	return bs, nil
 }
 
 func (bs *ByteSet) Get(i uint) byte {
+	log.Printf("Get(%v)", i)
 	bs.extendIfNeeded(i)
 	return bs.set[i]
 }
@@ -53,8 +54,8 @@ func checkFromTo(from, to uint) error {
 }
 
 func (bs *ByteSet) extendIfNeeded(i uint) {
-	if bs.length < i {
-		log.Println(bs, i)
+	if bs.length <= i {
+		log.Println("extend", bs, i)
 		newlength := i + 1
 		oldset := bs.set //make([]byte, newlength)
 		bs.set = make([]byte, newlength)

@@ -24,7 +24,7 @@ func TestGetSingleUnsetPoint(t *testing.T) {
 	}
 }
 
-func TestSetSinglePoint(t *testing.T) {
+func TestSetSinglePoints(t *testing.T) {
 	b := New(0)
 	b.Set(10, 13)
 	b.Set(18, 17)
@@ -50,11 +50,35 @@ func TestGetFromToUnsetPointWithWrongFromAndTo(t *testing.T) {
 	}
 }
 
-func TestSetFromToUnsetPointWithWrongFromAndTo(t *testing.T) {
+func TestSetFromToWithWrongFromAndTo(t *testing.T) {
 	b := New(0)
 	if _, err := b.SetFromTo(10, 9, 13); err == nil {
 		t.Errorf("wrong ordered from and to should return an error ")
 	}
+}
+
+func TestSetFromTo(t *testing.T) {
+	b := New(0)
+	b, err := b.SetFromTo(10, 20, 13)
+	if err != nil {
+		t.Error("err should be nil instead of %v", err)
+	}
+	if b.Get(9) != 0 {
+		t.Error("set byte should be 0")
+	}
+	if b.Get(10) != 13 {
+		t.Error("set byte should be 13")
+	}
+	if b.Get(19) != 13 {
+		t.Error("set byte should be 13")
+	}
+	if b.Get(20) != 13 {
+		t.Error("set byte should be 13")
+	}
+	if b.Get(21) != 0 {
+		t.Error("set byte should be 0")
+	}
+
 }
 
 func TestGetFromToSetPoint(t *testing.T) {
