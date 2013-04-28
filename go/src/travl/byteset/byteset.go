@@ -57,7 +57,9 @@ func (bs *ByteSet) extendIfNeeded(i uint) {
 	if bs.length < i {
 		log.Println(bs, i)
 		newlength := i + 1
+		oldset := bs.set //make([]byte, newlength)
 		bs.set = make([]byte, newlength)
+		copy(bs.set, oldset)
 		bs.length = newlength
 	}
 }

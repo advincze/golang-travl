@@ -27,8 +27,12 @@ func TestGetSingleUnsetPoint(t *testing.T) {
 func TestSetSinglePoint(t *testing.T) {
 	b := New(0)
 	b.Set(10, 13)
+	b.Set(18, 17)
 	if b.Get(10) != 13 {
 		t.Error("set byte should be 13")
+	}
+	if b.Get(18) != 17 {
+		t.Error("set byte should be 17")
 	}
 }
 
