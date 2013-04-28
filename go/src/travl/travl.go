@@ -9,10 +9,8 @@ import (
 func main() {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/res", wrapHandler(createHandler)).Methods("PUT")
-	r.HandleFunc("/res/", wrapHandler(createHandler)).Methods("PUT")
+	r.HandleFunc("/res", wrapHandler(createHandler)).Methods("POST")
 	r.HandleFunc("/res/{id}", wrapHandler(deleteHandler)).Methods("DELETE")
-	r.HandleFunc("/res/{id}/", wrapHandler(deleteHandler)).Methods("DELETE")
 
 	http.Handle("/", r)
 
@@ -29,6 +27,7 @@ func wrapHandler(fn http.HandlerFunc) http.HandlerFunc {
 
 func createHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "create res\n")
+	w.Header()
 }
 
 func deleteHandler(w http.ResponseWriter, r *http.Request) {

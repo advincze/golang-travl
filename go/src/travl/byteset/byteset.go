@@ -37,7 +37,7 @@ func (bs *ByteSet) Get(i uint) byte {
 }
 
 func (bs *ByteSet) GetFromTo(from, to uint) []byte {
-	if checkFromTo(from, to) != nil {
+	if err := checkFromTo(from, to); err != nil {
 		return nil
 	}
 	bs.extendIfNeeded(to)
@@ -53,7 +53,6 @@ func checkFromTo(from, to uint) error {
 }
 
 func (bs *ByteSet) extendIfNeeded(i uint) {
-
 	if bs.length < i {
 		log.Println(bs, i)
 		newlength := i + 1
