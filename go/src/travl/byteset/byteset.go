@@ -37,11 +37,15 @@ func (bs *ByteSet) Get(i uint) byte {
 }
 
 func (bs *ByteSet) GetFromTo(from uint, to uint) []byte {
+	if checkFromTo(from, to) != nil {
+		return nil
+	}
 	bs.extendIfNeeded(to)
 	return bs.set[from:to]
 }
 
 func checkFromTo(from, to uint) error {
+	log.Println("check", from, to)
 	if from > to {
 		return errors.New("from must be <= than to")
 	}
