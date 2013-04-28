@@ -1,37 +1,30 @@
 travl
 =====
 
-build:
+**build**:
 
 	% go get "github.com/gorilla/mux"
 	% go install ./...
 	
 
-run:
+**run**:
 
 	% bin/travl
 	
-get help:
+**get help**:
 
 	% bit/travl -help
 	
 
-use:
+**use**:
 
+	create
 	% curl -X PUT localhost:8080/res
 	{
 		id:1
 	}
-	% curl -X PUT localhost:8080/res/1 -d '{name:"bob"}'
-	{	
-		id:1, 
-		name="bob"
-	}
-	% curl localhost:8080/res/1
-	{	
-		id:1, 
-		name="bob"
-	}
+
+	delete
 	% curl -X DEL localhost:8080/res/1
 	{
 		id:1

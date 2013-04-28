@@ -11,10 +11,6 @@ func main() {
 
 	r.HandleFunc("/res", wrapHandler(createHandler)).Methods("PUT")
 	r.HandleFunc("/res/", wrapHandler(createHandler)).Methods("PUT")
-	r.HandleFunc("/res/{id}", wrapHandler(readHandler)).Methods("GET")
-	r.HandleFunc("/res/{id}/", wrapHandler(readHandler)).Methods("GET")
-	r.HandleFunc("/res/{id}", wrapHandler(updateHandler)).Methods("PUT")
-	r.HandleFunc("/res/{id}/", wrapHandler(updateHandler)).Methods("PUT")
 	r.HandleFunc("/res/{id}", wrapHandler(deleteHandler)).Methods("DELETE")
 	r.HandleFunc("/res/{id}/", wrapHandler(deleteHandler)).Methods("DELETE")
 
@@ -33,15 +29,6 @@ func wrapHandler(fn http.HandlerFunc) http.HandlerFunc {
 
 func createHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "create res\n")
-}
-
-func readHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get(":id")
-	fmt.Fprintf(w, "Hi there, I love %s! \n", id)
-}
-
-func updateHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "update res\n")
 }
 
 func deleteHandler(w http.ResponseWriter, r *http.Request) {
