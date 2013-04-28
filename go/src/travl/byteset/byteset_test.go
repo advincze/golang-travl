@@ -46,6 +46,13 @@ func TestGetFromToUnsetPointWithWrongFromAndTo(t *testing.T) {
 	}
 }
 
+func TestSetFromToUnsetPointWithWrongFromAndTo(t *testing.T) {
+	b := New(0)
+	if _, err := b.SetFromTo(10, 9, 13); err == nil {
+		t.Errorf("wrong ordered from and to should return an error ")
+	}
+}
+
 func TestGetFromToSetPoint(t *testing.T) {
 	b := New(0)
 	b.Set(9, 13)

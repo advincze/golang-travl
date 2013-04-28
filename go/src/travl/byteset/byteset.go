@@ -20,15 +20,15 @@ func (bs *ByteSet) Set(i uint, value byte) *ByteSet {
 	return bs
 }
 
-func (bs *ByteSet) SetFromTo(from uint, to uint, value byte) *ByteSet {
-	if checkFromTo(from, to) != nil {
-		panic("oh no an error")
+func (bs *ByteSet) SetFromTo(from, to uint, value byte) (*ByteSet, error) {
+	if err := checkFromTo(from, to); err != nil {
+		return bs, err
 	}
 	bs.extendIfNeeded(to)
 	for i := from; i < to; i++ {
 		bs.set[i] = value
 	}
-	return bs
+	return bs, nil
 }
 
 func (bs *ByteSet) Get(i uint) byte {
@@ -36,7 +36,7 @@ func (bs *ByteSet) Get(i uint) byte {
 	return bs.set[i]
 }
 
-func (bs *ByteSet) GetFromTo(from uint, to uint) []byte {
+func (bs *ByteSet) GetFromTo(from, to uint) []byte {
 	if checkFromTo(from, to) != nil {
 		return nil
 	}
