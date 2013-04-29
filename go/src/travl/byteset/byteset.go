@@ -25,7 +25,7 @@ func (bs *ByteSet) SetFromTo(from, to uint, value byte) (*ByteSet, error) {
 		return bs, err
 	}
 	bs.extendIfNeeded(to)
-	for i := from; i <= to; i++ {
+	for i := from; i < to; i++ {
 		bs.set[i] = value
 	}
 	return bs, nil
@@ -43,6 +43,28 @@ func (bs *ByteSet) GetFromTo(from, to uint) []byte {
 	}
 	bs.extendIfNeeded(to)
 	return bs.set[from:to]
+}
+
+func (bs *ByteSet) Max(from, to uint) byte {
+	byteSlice := bs.GetFromTo(from, to)
+	var max byte = 0
+	for _, b := range byteSlice {
+		if b > max {
+			max = b
+		}
+	}
+	return max
+}
+
+func (bs *ByteSet) Min(from, to uint) byte {
+	byteSlice := bs.GetFromTo(from, to)
+	var min byte = 255
+	for _, b := range byteSlice {
+		if b < min {
+			min = b
+		}
+	}
+	return min
 }
 
 func checkFromTo(from, to uint) error {

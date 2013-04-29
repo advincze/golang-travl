@@ -72,13 +72,12 @@ func TestSetFromTo(t *testing.T) {
 	if b.Get(19) != 13 {
 		t.Error("set byte should be 13")
 	}
-	if b.Get(20) != 13 {
-		t.Error("set byte should be 13")
+	if b.Get(20) != 0 {
+		t.Error("set byte should be 0")
 	}
 	if b.Get(21) != 0 {
 		t.Error("set byte should be 0")
 	}
-
 }
 
 func TestGetFromToSetPoint(t *testing.T) {
@@ -86,5 +85,19 @@ func TestGetFromToSetPoint(t *testing.T) {
 	b.Set(9, 13)
 	if v, exp := b.GetFromTo(9, 10), []byte{0, 0}; bytes.Equal(v, exp) {
 		t.Errorf("set bytes should be %v, was %v", exp, v)
+	}
+}
+
+func TestMinEmpty(t *testing.T) {
+	b := New(0)
+	if act := b.Min(10, 20); act != 0 {
+		t.Errorf("min of empty set should be 0, was %v", act)
+	}
+}
+
+func TestMaxEmpty(t *testing.T) {
+	b := New(0)
+	if act := b.Max(10, 20); act != 0 {
+		t.Errorf("max of empty set should be 0, was %v", act)
 	}
 }
