@@ -90,7 +90,7 @@ func (bs *ByteSet) Equal(c *ByteSet) bool {
 	return true
 }
 
-func (bs *ByteSet) histogram() (h [256]uint) {
+func (bs *ByteSet) Histogram() (h [256]uint) {
 	for _, b := range bs.set {
 		h[b]++
 	}
@@ -99,7 +99,8 @@ func (bs *ByteSet) histogram() (h [256]uint) {
 
 func (bs *ByteSet) extendIfNeeded(i uint) {
 	if bs.length <= i {
-		log.Println("extend", bs, i)
+		//log.Println("extend", bs, i)
+		// newlength := i + 1
 		newlength := i + 1
 		oldset := bs.set //make([]byte, newlength)
 		bs.set = make([]byte, newlength)

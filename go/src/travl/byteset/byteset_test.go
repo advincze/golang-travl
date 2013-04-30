@@ -154,7 +154,7 @@ func TestDifferentLegthNotEqual(t *testing.T) {
 
 func TestEmptyHistogram(t *testing.T) {
 	bs := New(100)
-	for i, b := range bs.histogram() {
+	for i, b := range bs.Histogram() {
 		switch i {
 		case 0:
 			if b != 100 {
@@ -174,7 +174,7 @@ func TestHistogram(t *testing.T) {
 	bs.Set(16, 15)
 	bs.Set(99, 15)
 	bs.Set(88, 33)
-	for i, b := range bs.histogram() {
+	for i, b := range bs.Histogram() {
 		switch i {
 		case 0:
 			if b != 96 {
