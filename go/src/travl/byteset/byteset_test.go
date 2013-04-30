@@ -151,3 +151,47 @@ func TestDifferentLegthNotEqual(t *testing.T) {
 		t.Error("empty bytesets with different length should not be equal")
 	}
 }
+
+func TestEmptyHistogram(t *testing.T) {
+	bs := New(100)
+	for i, b := range bs.histogram() {
+		switch i {
+		case 0:
+			if b != 100 {
+				t.Errorf("histogram value should be 100, h[%v] was %v", i, b)
+			}
+		default:
+			if b != 0 {
+				t.Errorf("all histogram values should be 0, h[%v] was %v", i, b)
+			}
+		}
+	}
+}
+
+func TestHistogram(t *testing.T) {
+	bs := New(100)
+	bs.Set(15, 15)
+	bs.Set(16, 15)
+	bs.Set(99, 15)
+	bs.Set(88, 33)
+	for i, b := range bs.histogram() {
+		switch i {
+		case 0:
+			if b != 96 {
+				t.Errorf("histogram value should be 96, h[%v] was %v", i, b)
+			}
+		case 15:
+			if b != 3 {
+				t.Errorf("histogram value should be 3, h[%v] was %v", i, b)
+			}
+		case 33:
+			if b != 1 {
+				t.Errorf("histogram value should be 1, h[%v] was %v", i, b)
+			}
+		default:
+			if b != 0 {
+				t.Errorf("histogram values should be 0, h[%v] was %v", i, b)
+			}
+		}
+	}
+}

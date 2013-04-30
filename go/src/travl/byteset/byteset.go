@@ -90,6 +90,13 @@ func (bs *ByteSet) Equal(c *ByteSet) bool {
 	return true
 }
 
+func (bs *ByteSet) histogram() (h [256]uint) {
+	for _, b := range bs.set {
+		h[b]++
+	}
+	return h
+}
+
 func (bs *ByteSet) extendIfNeeded(i uint) {
 	if bs.length <= i {
 		log.Println("extend", bs, i)
