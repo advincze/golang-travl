@@ -114,9 +114,40 @@ func TestMaxEmpty(t *testing.T) {
 	}
 }
 
+func TestMax(t *testing.T) {
+	b := New(0)
+	b.Set(15, 15)
+	b.Set(14, 14)
+	b.Set(13, 13)
+	b.Set(12, 12)
+	exp := byte(14)
+	if act := b.Max(12, 15); act != exp {
+		t.Errorf("max of the set should be %v, was %v", exp, act)
+	}
+}
+
 func TestEqualEmpty(t *testing.T) {
 	b := New(0)
 	if act := New(0); !b.Equal(act) {
 		t.Error("empty bytesets should be equal")
+	}
+}
+
+func TestEqual(t *testing.T) {
+	b := New(0)
+	b.Set(15, 13)
+	b.Set(105, 13)
+	c := New(0)
+	c.Set(15, 13)
+	c.Set(105, 13)
+	if !b.Equal(c) {
+		t.Error("byetsets should be equal")
+	}
+}
+
+func TestDifferentLegthNotEqual(t *testing.T) {
+	b := New(0)
+	if act := New(1); b.Equal(act) {
+		t.Error("empty bytesets with different length should not be equal")
 	}
 }
