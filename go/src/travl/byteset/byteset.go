@@ -11,7 +11,7 @@ type ByteSet struct {
 }
 
 func New(length uint) *ByteSet {
-	return &ByteSet{0, make([]byte, length)}
+	return &ByteSet{length, make([]byte, length)}
 }
 
 func (bs *ByteSet) Set(i uint, value byte) *ByteSet {
@@ -73,6 +73,21 @@ func checkFromTo(from, to uint) error {
 		return errors.New("from must be <= than to")
 	}
 	return nil
+}
+
+func (bs *ByteSet) Equal(c *ByteSet) bool {
+	if c == nil {
+		return false
+	}
+	if bs.length != c.length {
+		return false
+	}
+	for p, v := range bs.set {
+		if c.set[p] != v {
+			return false
+		}
+	}
+	return true
 }
 
 func (bs *ByteSet) extendIfNeeded(i uint) {
