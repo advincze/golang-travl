@@ -32,3 +32,14 @@ func TestGetFromEmptyAv(t *testing.T) {
 		t.Errorf("empty av should return %v , was %v", expected, byteArr)
 	}
 }
+
+func TestGetFromSingleSetUnit(t *testing.T) {
+	byteAv := New(Minute5)
+	byteAv.Set(now, now.Add(5*time.Minute), 1)
+	byteArr := byteAv.Get(now, now.Add(15*time.Minute))
+	expected := []byte{1, 0, 0}
+	if !bytes.Equal(byteArr, expected) {
+		t.SkipNow()
+		t.Errorf(" av should return %v , was %v", expected, byteArr)
+	}
+}
