@@ -43,17 +43,35 @@ func New(res TimeRes) *ByteAv {
 }
 
 func (b *ByteAv) Set(from, to time.Time, value byte) error {
-	fromFrame := timeToFrame(from, b.internalRes)
-	toFrame := timeToFrame(to, b.internalRes)
-	return b.setFrame(fromFrame, toFrame, value)
+	fromUnit := timeToUnit(from, b.internalRes)
+	toUnit := timeToUnit(to, b.internalRes)
+	return b.setUnit(fromUnit, toUnit, value)
 }
 
 func (b *ByteAv) Get(from, to time.Time) []byte {
-	length := int(to.Sub(from).Seconds()) / int(b.internalRes)
-	return make([]byte, length)
+	fromUnit := timeToUnit(from, b.internalRes)
+	toUnit := timeToUnit(to, b.internalRes)
+
+	return b.getUnit(fromUnit, toUnit)
 }
 
-func (b *ByteAv) setFrame(from, to int64, value byte) error {
+func (b *ByteAv) getUnit(from, to int64) []byte {
+	length := to - from
+	data := make([]byte, length)
+	if b.byteset == nil {
+		return data
+	}
+	k := int64(0)
+	if from < b.offset {
+		k = b.offset - from
+	}
+	for i := uint(0); k < length; i, k = i+1, k+1 {
+		data[k] = b.byteset.Get(i)
+	}
+	return data
+}
+
+func (b *ByteAv) setUnit(from, to int64, value byte) error {
 	if b.byteset == nil {
 		b.offset = from
 		b.byteset = byteset.New(0)
@@ -61,14 +79,16 @@ func (b *ByteAv) setFrame(from, to int64, value byte) error {
 	} else if from < b.offset {
 		b.shiftOffset(from)
 	}
-	return b.setInternal(from-b.offset, to-b.offset, value)
+	return b.setInternal(uint(from-b.offset), uint(to-b.offset), value)
 }
 
-func (b *ByteAv) setInternal(from, to int64, value byte) error {
+func (b *ByteAv) setInternal(from, to uint, value byte) error {
+	println("setInternal", from, to, value)
+	b.byteset.SetFromTo(from, to, value)
 	return nil
 }
 
-func timeToFrame(t time.Time, res TimeRes) int64 {
+func timeToUnit(t time.Time, res TimeRes) int64 {
 	return t.Unix() / int64(res)
 }
 

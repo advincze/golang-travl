@@ -39,7 +39,7 @@ func TestGetFromSingleSetUnit(t *testing.T) {
 	byteArr := byteAv.Get(now, now.Add(15*time.Minute))
 	expected := []byte{1, 0, 0}
 	if !bytes.Equal(byteArr, expected) {
-		t.SkipNow()
+		// t.SkipNow()
 		t.Errorf(" av should return %v , was %v", expected, byteArr)
 	}
 }
