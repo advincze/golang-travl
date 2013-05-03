@@ -7,7 +7,8 @@ import (
 
 type TimeRes int
 
-const Minute TimeRes = 1
+const second TimeRes = 1
+const Minute TimeRes = 60 * second
 const Minute5 TimeRes = 5 * Minute
 const Minute15 TimeRes = 15 * Minute
 const Hour TimeRes = 60 * Minute
@@ -30,7 +31,7 @@ func (b *ByteAv) Set(from, to time.Time, value byte) error {
 }
 
 func (b *ByteAv) Get(from, to time.Time) []byte {
-	length := int(to.Sub(from).Minutes()) / int(b.internalRes)
+	length := int(to.Sub(from).Seconds()) / int(b.internalRes)
 	return make([]byte, length)
 }
 
@@ -38,6 +39,12 @@ func (b *ByteAv) setInternal(from, to int, value byte) error {
 	return nil
 }
 
-func roundDate(t time.Time, res TimeRes) int {
-	return 0
+func roundDate(t time.Time, res TimeRes) time.Time {
+	println("rd", t.Unix(), int64(res), t.Unix()%int64(res))
+	if tooMuch := t.Unix() % int64(res); tooMuch != 0 {
+		println("too much", tooMuch)
+		return t.Add(time.Duration(-1*tooMuch) * time.Second)
+	}
+	println("no round")
+	return t
 }

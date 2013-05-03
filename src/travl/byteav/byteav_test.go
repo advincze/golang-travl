@@ -43,3 +43,19 @@ func TestGetFromSingleSetUnit(t *testing.T) {
 		t.Errorf(" av should return %v , was %v", expected, byteArr)
 	}
 }
+
+func TestRoundDateWithResMin15(t *testing.T) {
+	expected := time.Date(1998, time.February, 1, 0, 0, 0, 0, time.UTC)
+	t1 := expected.Add(11 * time.Minute)
+	if act := roundDate(t1, Minute15); act != expected {
+		t.Errorf(" %v rounded with %v should be %v, was %v", t1, Minute15, expected, act)
+	}
+}
+
+func TestRoundDateWithResHour(t *testing.T) {
+	expected := time.Date(1998, time.February, 1, 0, 0, 0, 0, time.UTC)
+	t1 := expected.Add(59 * time.Minute)
+	if act := roundDate(t1, Hour); act != expected {
+		t.Errorf(" %v rounded with %v should be %v, was %v", t1, Minute15, expected, act)
+	}
+}
