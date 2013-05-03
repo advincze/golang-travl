@@ -14,6 +14,24 @@ const Minute15 TimeRes = 15 * Minute
 const Hour TimeRes = 60 * Minute
 const Day TimeRes = 24 * Hour
 
+func (tr TimeRes) String() string {
+	switch tr {
+	case second:
+		return "sec"
+	case Minute:
+		return "min"
+	case Minute5:
+		return "5 min"
+	case Minute15:
+		return "15 min"
+	case Hour:
+		return "hour"
+	case Day:
+		return "day"
+	}
+	panic("no other options")
+}
+
 type ByteAv struct {
 	internalRes TimeRes
 	offset      int64

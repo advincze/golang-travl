@@ -44,6 +44,15 @@ func TestGetFromSingleSetUnit(t *testing.T) {
 	}
 }
 
+func TestRoundDateWithNoRoundExpected(t *testing.T) {
+	t0 := time.Date(1998, time.February, 1, 0, 0, 0, 0, time.UTC)
+	t1 := t0.Add(59 * time.Minute)
+	expected := t1
+	if act := roundDate(t1, Minute); act != t1 {
+		t.Errorf(" %v rounded with %v should be %v, was %v", t1, Minute, expected, act)
+	}
+}
+
 func TestRoundDateWithResMin15(t *testing.T) {
 	expected := time.Date(1998, time.February, 1, 0, 0, 0, 0, time.UTC)
 	t1 := expected.Add(11 * time.Minute)
