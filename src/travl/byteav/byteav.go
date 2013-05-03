@@ -43,9 +43,9 @@ func New(res TimeRes) *ByteAv {
 }
 
 func (b *ByteAv) Set(from, to time.Time, value byte) error {
-	// fromInt := roundDate(from, b.internalRes)
-
-	return nil
+	fromFrame := timeToFrame(from, b.internalRes)
+	toFrame := timeToFrame(to, b.internalRes)
+	return b.setFrame(fromFrame, toFrame, value)
 }
 
 func (b *ByteAv) Get(from, to time.Time) []byte {
@@ -53,16 +53,33 @@ func (b *ByteAv) Get(from, to time.Time) []byte {
 	return make([]byte, length)
 }
 
-func (b *ByteAv) setInternal(from, to int, value byte) error {
+func (b *ByteAv) setFrame(from, to int64, value byte) error {
+	if b.byteset == nil {
+		b.offset = from
+		b.byteset = byteset.New(0)
+
+	} else if from < b.offset {
+		b.shiftOffset(from)
+	}
+	return b.setInternal(from-b.offset, to-b.offset, value)
+}
+
+func (b *ByteAv) setInternal(from, to int64, value byte) error {
 	return nil
 }
 
+func timeToFrame(t time.Time, res TimeRes) int64 {
+	return t.Unix() / int64(res)
+}
+
 func roundDate(t time.Time, res TimeRes) time.Time {
-	println("rd", t.Unix(), int64(res), t.Unix()%int64(res))
 	if tooMuch := t.Unix() % int64(res); tooMuch != 0 {
-		println("too much", tooMuch)
 		return t.Add(time.Duration(-1*tooMuch) * time.Second)
 	}
-	println("no round")
 	return t
+}
+
+func (b *ByteAv) shiftOffset(maxOffset int64) {
+	//prepend := b.offset - maxOffset
+
 }
