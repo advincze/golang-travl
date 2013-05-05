@@ -16,12 +16,14 @@ func TestNewByteAv(t *testing.T) {
 }
 
 func TestSetFromTo(t *testing.T) {
-	byteAv := New(Minute5)
+	defer func() {
+		if r := recover(); r != nil {
+			t.Error("set should not panic")
+		}
+	}()
 
-	err := byteAv.Set(now, now.Add(15*time.Minute), 1)
-	if err != nil {
-		t.Errorf("Set should not return an error")
-	}
+	byteAv := New(Minute5)
+	byteAv.Set(now, now.Add(15*time.Minute), 1)
 }
 
 func TestGetFromEmptyAv(t *testing.T) {
@@ -67,4 +69,22 @@ func TestRoundDateWithResHour(t *testing.T) {
 	if act := roundDate(t1, Hour); act != expected {
 		t.Errorf(" %v rounded with %v should be %v, was %v", t1, Minute15, expected, act)
 	}
+}
+
+func TestShiftOffsetEmptyAv(t *testing.T) {
+	b := New(Minute5)
+	b.Set(now, now, 17)
+	if bb := b.Get(now, now); len(bb) == 1 && bb[0] != 17 {
+		t.Errorf("unit set should be returned")
+	}
+
+	off := b.offset
+	b.shiftOffset(off - 100)
+	if bb := b.Get(now, now); len(bb) == 1 && bb[0] != 17 {
+		t.Errorf("unit set should be returned after offset shift correctly")
+	}
+	if b.offset != off-100 {
+		t.Errorf("offset should have been shifted by 100 bytes")
+	}
+
 }

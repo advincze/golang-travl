@@ -42,10 +42,11 @@ func New(res TimeRes) *ByteAv {
 	return &ByteAv{internalRes: res}
 }
 
-func (b *ByteAv) Set(from, to time.Time, value byte) error {
+func (b *ByteAv) Set(from, to time.Time, value byte) *ByteAv {
 	fromUnit := timeToUnit(from, b.internalRes)
 	toUnit := timeToUnit(to, b.internalRes)
-	return b.setUnit(fromUnit, toUnit, value)
+	b.setUnit(fromUnit, toUnit, value)
+	return b
 }
 
 func (b *ByteAv) Get(from, to time.Time) []byte {
@@ -71,7 +72,7 @@ func (b *ByteAv) getUnit(from, to int64) []byte {
 	return data
 }
 
-func (b *ByteAv) setUnit(from, to int64, value byte) error {
+func (b *ByteAv) setUnit(from, to int64, value byte) {
 	if b.byteset == nil {
 		b.offset = from
 		b.byteset = byteset.New(0)
@@ -79,13 +80,12 @@ func (b *ByteAv) setUnit(from, to int64, value byte) error {
 	} else if from < b.offset {
 		b.shiftOffset(from)
 	}
-	return b.setInternal(uint(from-b.offset), uint(to-b.offset), value)
+	b.setInternal(uint(from-b.offset), uint(to-b.offset), value)
 }
 
-func (b *ByteAv) setInternal(from, to uint, value byte) error {
+func (b *ByteAv) setInternal(from, to uint, value byte) {
 	println("setInternal", from, to, value)
 	b.byteset.SetFromTo(from, to, value)
-	return nil
 }
 
 func timeToUnit(t time.Time, res TimeRes) int64 {
@@ -100,6 +100,6 @@ func roundDate(t time.Time, res TimeRes) time.Time {
 }
 
 func (b *ByteAv) shiftOffset(maxOffset int64) {
-	//prepend := b.offset - maxOffset
+	// prepend := b.offset - maxOffset
 
 }
