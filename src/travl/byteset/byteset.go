@@ -112,3 +112,10 @@ func (bs *ByteSet) extendIfNeeded(i uint) {
 		bs.length = newlength
 	}
 }
+
+func (bs *ByteSet) ShiftBy(i uint) {
+	newset := make([]byte, bs.length+i)
+	copy(newset[i:], bs.set)
+	bs.set = newset
+	bs.length += i
+}

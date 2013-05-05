@@ -209,3 +209,24 @@ func TestLen23(t *testing.T) {
 		t.Errorf("byteset should have len 23")
 	}
 }
+
+func TestShiftBy(t *testing.T) {
+	bs := New(10)
+	bs.Set(0, 13)
+	if bs.Get(0) != 13 {
+		t.Error("should return set value")
+	}
+	if bs.Get(5) != 0 {
+		t.Error("unset value should return zero")
+	}
+
+	bs.ShiftBy(5)
+
+	if bs.Get(0) != 0 {
+		t.Error("unset value should return zero after shift")
+	}
+	if bs.Get(5) != 13 {
+		t.Error("should return set value after shift ")
+	}
+
+}
