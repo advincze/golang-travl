@@ -100,6 +100,7 @@ func roundDate(t time.Time, res TimeRes) time.Time {
 }
 
 func (b *ByteAv) shiftOffset(maxOffset int64) {
-	// prepend := b.offset - maxOffset
-
+	prepend := uint(b.offset - maxOffset)
+	b.byteset.ShiftBy(prepend)
+	b.offset = maxOffset
 }
