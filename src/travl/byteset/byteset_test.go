@@ -195,3 +195,17 @@ func TestHistogram(t *testing.T) {
 		}
 	}
 }
+
+func TestLenEmpty(t *testing.T) {
+	bs := New(0)
+	if bs.Len() != 0 {
+		t.Errorf("empty byteset should have len 0")
+	}
+}
+
+func TestLen23(t *testing.T) {
+	bs := New(23)
+	if bs.Len() != 23 {
+		t.Errorf("byteset should have len 23")
+	}
+}

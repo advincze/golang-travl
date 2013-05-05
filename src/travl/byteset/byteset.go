@@ -97,6 +97,10 @@ func (bs *ByteSet) Histogram() (h [256]uint) {
 	return h
 }
 
+func (bs *ByteSet) Len() uint {
+	return bs.length
+}
+
 func (bs *ByteSet) extendIfNeeded(i uint) {
 	if bs.length <= i {
 		//log.Println("extend", bs, i)
