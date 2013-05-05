@@ -19,7 +19,7 @@ travl
 **use**:
 
 	create
-	% curl -X PUT localhost:8080/res
+	% curl -X POST localhost:8080/res
 	{
 		id:1
 	}
