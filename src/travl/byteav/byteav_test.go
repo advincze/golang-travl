@@ -71,20 +71,31 @@ func TestRoundDateWithResHour(t *testing.T) {
 	}
 }
 
-func TestShiftOffsetEmptyAv(t *testing.T) {
+func TestShiftOffset(t *testing.T) {
 	b := New(Minute5)
-	b.Set(now, now, 17)
-	if bb := b.Get(now, now); len(bb) == 1 && bb[0] != 17 {
+	b.Set(now, now.Add(5*time.Minute), 17)
+	if bb := b.Get(now, now.Add(5*time.Minute)); len(bb) != 1 || bb[0] != 17 {
 		t.Errorf("unit set should be returned")
 	}
 
 	off := b.offset
 	b.shiftOffset(off - 100)
-	if bb := b.Get(now, now); len(bb) == 1 && bb[0] != 17 {
-		t.Errorf("unit set should be returned after offset shift correctly")
+	if bb := b.Get(now, now.Add(5*time.Minute)); len(bb) != 1 || bb[0] != 17 {
+		t.Errorf("unit set should be returned after offset shift correctly %v", bb)
 	}
 	if b.offset != off-100 {
 		t.Errorf("offset should have been shifted by 100 bytes")
 	}
+}
 
+func TestSetWhereShiftIsNeeded(t *testing.T) {
+	b := New(Minute5)
+	b.Set(now, now.Add(5*time.Minute), 17)
+	b.Set(now.Add(-10*time.Minute), now.Add(-5*time.Minute), 13)
+
+	expected := []byte{0, 13, 0, 17, 0}
+
+	if act := b.Get(now.Add(-15*time.Minute), now.Add(10*time.Minute)); !bytes.Equal(act, expected) {
+		t.Errorf("av should return %v , was %v", expected, act)
+	}
 }
