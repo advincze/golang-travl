@@ -71,23 +71,6 @@ func TestRoundDateWithResHour(t *testing.T) {
 	}
 }
 
-func TestShiftOffset(t *testing.T) {
-	b := New(Minute5)
-	b.Set(now, now.Add(5*time.Minute), 17)
-	if bb := b.Get(now, now.Add(5*time.Minute)); len(bb) != 1 || bb[0] != 17 {
-		t.Errorf("unit set should be returned")
-	}
-
-	off := b.offset
-	b.shiftOffset(off - 100)
-	if bb := b.Get(now, now.Add(5*time.Minute)); len(bb) != 1 || bb[0] != 17 {
-		t.Errorf("unit set should be returned after offset shift correctly %v", bb)
-	}
-	if b.offset != off-100 {
-		t.Errorf("offset should have been shifted by 100 bytes")
-	}
-}
-
 func TestSetWhereShiftIsNeeded(t *testing.T) {
 	b := New(Minute5)
 	b.Set(now, now.Add(5*time.Minute), 17)
