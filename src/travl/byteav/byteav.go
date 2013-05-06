@@ -42,6 +42,12 @@ func New(res TimeRes) *ByteAv {
 	return &ByteAv{internalRes: res}
 }
 
+func (b *ByteAv) SetAt(at time.Time, value byte) *ByteAv {
+	atUnit := timeToUnit(at, b.internalRes)
+	b.setUnit(atUnit, atUnit+1, value)
+	return b
+}
+
 func (b *ByteAv) Set(from, to time.Time, value byte) *ByteAv {
 	fromUnit := timeToUnit(from, b.internalRes)
 	toUnit := timeToUnit(to, b.internalRes)
@@ -52,7 +58,6 @@ func (b *ByteAv) Set(from, to time.Time, value byte) *ByteAv {
 func (b *ByteAv) Get(from, to time.Time) []byte {
 	fromUnit := timeToUnit(from, b.internalRes)
 	toUnit := timeToUnit(to, b.internalRes)
-
 	return b.getUnit(fromUnit, toUnit)
 }
 
@@ -63,10 +68,14 @@ func (b *ByteAv) getUnit(from, to int64) []byte {
 		return data
 	}
 	k := int64(0)
+	i := uint(0)
 	if from < b.offset {
 		k = b.offset - from
+	} else {
+		i = uint(from - b.offset)
 	}
-	for i := uint(0); k < length; i, k = i+1, k+1 {
+	//println("get", from, to, b.offset)
+	for ; k < length; i, k = i+1, k+1 {
 		data[k] = b.byteset.Get(i)
 	}
 	return data

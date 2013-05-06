@@ -82,3 +82,18 @@ func TestSetWhereShiftIsNeeded(t *testing.T) {
 		t.Errorf("av should return %v , was %v", expected, act)
 	}
 }
+
+func TestSetAt(t *testing.T) {
+	b := New(Minute5)
+	b.SetAt(now, 22)
+	if bytes := b.Get(now.Add(-5*time.Minute), now); len(bytes) != 1 || bytes[0] != 0 {
+		t.Errorf("unset byte before should be zero, was %v", bytes)
+	}
+	if bytes := b.Get(now, now.Add(5*time.Minute)); len(bytes) != 1 || bytes[0] != 22 {
+		t.Errorf("set byte should be 22, was %v", bytes)
+	}
+	if bytes1 := b.Get(now.Add(5*time.Minute), now.Add(10*time.Minute)); len(bytes1) != 1 || bytes1[0] != 0 {
+		t.Errorf("unset byte after should be zero, was %v", bytes1)
+	}
+
+}
