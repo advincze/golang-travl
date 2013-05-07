@@ -61,6 +61,11 @@ func (b *ByteAv) Get(from, to time.Time) []byte {
 	return b.getUnit(fromUnit, toUnit)
 }
 
+func (b *ByteAv) GetAt(at time.Time) byte {
+	atUnit := timeToUnit(at, b.internalRes)
+	return b.getUnit(atUnit, atUnit+1)[0]
+}
+
 func (b *ByteAv) getUnit(from, to int64) []byte {
 	length := to - from
 	data := make([]byte, length)
@@ -74,7 +79,6 @@ func (b *ByteAv) getUnit(from, to int64) []byte {
 	} else {
 		i = uint(from - b.offset)
 	}
-	//println("get", from, to, b.offset)
 	for ; k < length; i, k = i+1, k+1 {
 		data[k] = b.byteset.Get(i)
 	}

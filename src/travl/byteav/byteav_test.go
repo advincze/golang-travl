@@ -95,5 +95,21 @@ func TestSetAt(t *testing.T) {
 	if bytes1 := b.Get(now.Add(5*time.Minute), now.Add(10*time.Minute)); len(bytes1) != 1 || bytes1[0] != 0 {
 		t.Errorf("unset byte after should be zero, was %v", bytes1)
 	}
+}
+
+func TestGetAt(t *testing.T) {
+	b := New(Minute5)
+	b.SetAt(now, 23)
+
+	if byt := b.GetAt(now.Add(-5 * time.Minute)); byt != 0 {
+		t.Errorf("unset byte before should be zero, was %v", byt)
+	}
+
+	if byt := b.GetAt(now); byt != 23 {
+		t.Errorf("set byte should be 23, was %v", byt)
+	}
+	if byt := b.GetAt(now.Add(5 * time.Minute)); byt != 0 {
+		t.Errorf("unset byte after should be zero, was %v", byt)
+	}
 
 }
