@@ -24,7 +24,7 @@ travl
 		"id"		 : "8",
 		"resolution" : "1min"
 	}'
-	201 CREATED { "id":"13" }
+	201 CREATED { "id":"8" }
 
 *delete*
 

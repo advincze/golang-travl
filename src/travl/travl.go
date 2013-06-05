@@ -15,6 +15,13 @@ func main() {
 
 	flag.Parse()
 
+	http.Handle("/", getHandler())
+
+	http.ListenAndServe(":1982", nil)
+
+}
+
+func getHandler() http.Handler {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/{type}", wrapHandler(createObject)).Methods("POST")
@@ -22,11 +29,8 @@ func main() {
 	r.HandleFunc("/{type}/{id}/_av", wrapHandler(defineAvailability)).Methods("PUT")
 	r.HandleFunc("/{type}/{id}/_av", wrapHandler(retrieveAvailability)).Methods("GET")
 	r.HandleFunc("/{type}/{id}/_ev", wrapHandler(addEvent)).Methods("PUT")
-
-	http.Handle("/", r)
-
-	http.ListenAndServe(":1982", nil)
-
+	r.HandleFunc("/{type}", wrapHandler(infoHandler)).Methods("GET")
+	return r
 }
 
 func wrapHandler(fn http.HandlerFunc) http.HandlerFunc {
@@ -37,22 +41,36 @@ func wrapHandler(fn http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+func infoHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "info")
+}
+
 func createObject(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	t := vars["type"]
 	body, _ := ioutil.ReadAll(r.Body)
 
 	type Message struct {
-		Id         string
-		Resolution string
+		Id         string `json:"id"`
+		Resolution string `json:"resolution"`
 	}
-	fmt.Printf("body: %s\n", body)
+
 	var v *Message
 	err := json.Unmarshal(body, &v)
 	if err != nil {
-		panic(err)
+		http.Error(w, "could not parse json document", http.StatusInternalServerError)
 	}
-	fmt.Fprintf(w, "create  %v %v\n", t, v)
+
+	// save v
+	v.Resolution = ""
+
+	type Resp struct {
+		Id string `json:"id"`
+	}
+
+	resp := &Resp{Id: v.Id}
+
+	bytes, _ := json.Marshal(resp)
+	w.WriteHeader(http.StatusCreated)
+	fmt.Fprintf(w, "%s", bytes)
 
 }
 
