@@ -21,14 +21,14 @@ travl
 *create*
 
 	% curl -X POST localhost:1982/obj -d '{
-		"id"		:"8",
-		resolution 	: "1min"
+		"id"		 : "8",
+		"resolution" : "1min"
 	}'
 	201 CREATED { "id":"13" }
 
 *delete*
 
-	% curl -X DEL localhost:1982/obj/8
+	% curl -X DELETE localhost:1982/obj/8
 	200 OK
 		
 *define*
