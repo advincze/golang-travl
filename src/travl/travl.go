@@ -15,30 +15,22 @@ func main() {
 
 	flag.Parse()
 
-	http.Handle("/", getHandler())
+	http.Handle("/", createRouter())
 
 	http.ListenAndServe(":1982", nil)
 
 }
 
-func getHandler() http.Handler {
+func createRouter() http.Handler {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/{type}", wrapHandler(createObject)).Methods("POST")
-	r.HandleFunc("/{type}/{id}", wrapHandler(deleteObject)).Methods("DELETE")
-	r.HandleFunc("/{type}/{id}/_av", wrapHandler(defineAvailability)).Methods("PUT")
-	r.HandleFunc("/{type}/{id}/_av", wrapHandler(retrieveAvailability)).Methods("GET")
-	r.HandleFunc("/{type}/{id}/_ev", wrapHandler(addEvent)).Methods("PUT")
-	r.HandleFunc("/{type}", wrapHandler(infoHandler)).Methods("GET")
+	r.HandleFunc("/{type}", createObject).Methods("POST")
+	r.HandleFunc("/{type}/{id}", deleteObject).Methods("DELETE")
+	r.HandleFunc("/{type}/{id}/_av", defineAvailability).Methods("PUT")
+	r.HandleFunc("/{type}/{id}/_av", retrieveAvailability).Methods("GET")
+	r.HandleFunc("/{type}/{id}/_ev", addEvent).Methods("PUT")
+	r.HandleFunc("/{type}", infoHandler).Methods("GET")
 	return r
-}
-
-func wrapHandler(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		fmt.Printf("wrap with %v\n", vars)
-		fn(w, r)
-	}
 }
 
 func infoHandler(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +52,6 @@ func createObject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// save v
-	v.Resolution = ""
 
 	type Resp struct {
 		Id string `json:"id"`

@@ -1,29 +1,26 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
 func TestShouldCreateObject(t *testing.T) {
-
-	ts := httptest.NewServer(getHandler())
+	ts := httptest.NewServer(createRouter())
 	defer ts.Close()
 
-	res, err := http.Get(ts.URL + "/obj")
-	if err != nil {
-		log.Fatal(err)
-	}
-	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	res, err := http.Post(ts.URL+"/obj", "appication/json", strings.NewReader(`{
+		"id"		 : "8",
+		"resolution" : "1min"
+	}`))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("XXX%sYYY, %s", body, ts.URL)
-
+	if res.StatusCode != http.StatusCreated {
+		t.Errorf("statuscode should be 'Created', was %v\n", res.StatusCode)
+	}
 }
