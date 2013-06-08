@@ -223,3 +223,15 @@ func TestGetAvFromItersectSet(t *testing.T) {
 		t.Errorf("30 of the bits should be set \n")
 	}
 }
+
+func BenchmarkSetAvTwoYearsWorkingHours(b *testing.B) {
+
+	ba := NewBitAv()
+	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
+	t2 := time.Date(1982, 2, 8, 0, 0, 0, 0, time.UTC)
+
+	for i := 0; i < b.N; i++ {
+		ba.SetAv(t1, t2, true)
+	}
+
+}
