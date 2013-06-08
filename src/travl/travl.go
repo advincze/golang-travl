@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
+	"travl/av"
 )
 
 var species = flag.String("species", "gopher", "the species we are studying")
@@ -40,36 +41,39 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 func createObject(w http.ResponseWriter, r *http.Request) {
 
 	t := mux.Vars(r)["type"]
-
+	ot := av.GetObjectType(t)
 	body, _ := ioutil.ReadAll(r.Body)
+	if len(body) != 0 {
+		type Message struct {
+			Id         string `json:"id"`
+			Resolution string `json:"resolution"`
+		}
 
-	type Message struct {
-		Id         string `json:"id"`
-		Resolution string `json:"resolution"`
+		var v *Message
+		err := json.Unmarshal(body, &v)
+		if err != nil {
+			http.Error(w, "could not parse json document", http.StatusInternalServerError)
+		}
+
+		ob := ot.GetObject(v.Id)
+		bytes, _ := json.Marshal(ob)
+		w.WriteHeader(http.StatusCreated)
+		fmt.Fprintf(w, "%s", bytes)
+	} else {
+		ob := ot.NewObject()
+		bytes, _ := json.Marshal(ob)
+		w.WriteHeader(http.StatusCreated)
+		fmt.Fprintf(w, "%s", bytes)
 	}
-
-	var v *Message
-	err := json.Unmarshal(body, &v)
-	if err != nil {
-		http.Error(w, "could not parse json document", http.StatusInternalServerError)
-	}
-
-	fmt.Printf("create object type: %s : %v \n", t, v)
-
-	type Resp struct {
-		Id string `json:"id"`
-	}
-
-	resp := &Resp{Id: v.Id}
-
-	bytes, _ := json.Marshal(resp)
-	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(w, "%s", bytes)
-
 }
 
 func deleteObject(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "delete res\n")
+	vars := mux.Vars(r)
+	t := vars["type"]
+	id := vars["id"]
+
+	fmt.Fprintf(w, "delete res , type: %v, id: %v \n", t, id)
+
 }
 
 func defineAvailability(w http.ResponseWriter, r *http.Request) {

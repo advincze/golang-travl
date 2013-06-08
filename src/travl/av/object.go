@@ -1,5 +1,9 @@
 package av
 
+import (
+	"strconv"
+)
+
 type objectType struct {
 	Name       string
 	Resolution TimeResolution
@@ -23,12 +27,23 @@ type object struct {
 }
 
 func (ot *objectType) NewObject() *object {
-	id := string(len(ot.Objects) + 1)
+	i := len(ot.Objects) + 1
+	id := strconv.Itoa(i)
+	for _, ok := ot.Objects[id]; ok; id = strconv.Itoa(i) {
+		i += 1
+	}
 	ob := &object{Id: id}
 	ot.Objects[id] = ob
 	return ob
 }
 
 func (ot *objectType) GetObject(id string) *object {
-	return ot.Objects[id]
+	ob, ok := ot.Objects[id]
+
+	if !ok {
+		ob = &object{Id: id}
+
+		ot.Objects[id] = ob
+	}
+	return ob
 }

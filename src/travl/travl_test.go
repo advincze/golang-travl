@@ -35,4 +35,8 @@ func TestShouldCreateObject(t *testing.T) {
 	if res.StatusCode != http.StatusCreated {
 		t.Errorf("statuscode should be 'Created', was %v\n", res.StatusCode)
 	}
+
+	if resp.Id != "8" {
+		t.Errorf("id of 'Created', should be 8, was %v\n", resp.Id)
+	}
 }
