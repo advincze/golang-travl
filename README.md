@@ -36,6 +36,9 @@ travl
 		"resolution" : "1min"
 	}'
 	201 CREATED { "id":"8" }
+	
+	% curl -X POST localhost:1982/obj 
+	201 CREATED { "id":"1" }
 
 *delete*
 
