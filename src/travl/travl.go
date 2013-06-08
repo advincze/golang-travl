@@ -71,13 +71,19 @@ func deleteObject(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	t := vars["type"]
 	id := vars["id"]
-
-	fmt.Fprintf(w, "delete res , type: %v, id: %v \n", t, id)
+	_, ob := av.GetObjectTypeAndObject(t, id)
+	fmt.Fprintf(w, "delete res , type: %v, id: %v , ob: %v \n", t, id, ob)
 
 }
 
 func defineAvailability(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "defineAvailability\n")
+	vars := mux.Vars(r)
+	t := vars["type"]
+	id := vars["id"]
+	_, ob := av.GetObjectTypeAndObject(t, id)
+
+	fmt.Fprintf(w, "defineAvailability, type: %v , id: %v , %v \n", t, id, ob)
+
 }
 
 func retrieveAvailability(w http.ResponseWriter, r *http.Request) {

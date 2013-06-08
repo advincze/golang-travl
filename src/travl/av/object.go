@@ -47,3 +47,9 @@ func (ot *objectType) GetObject(id string) *object {
 	}
 	return ob
 }
+
+func GetObjectTypeAndObject(name, id string) (*objectType, *object) {
+	ot := GetObjectType(name)
+	ob := ot.GetObject(id)
+	return ot, ob
+}
