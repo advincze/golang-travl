@@ -13,12 +13,10 @@ func TestShouldCreateObject(t *testing.T) {
 	ts := httptest.NewServer(createRouter())
 	defer ts.Close()
 
-	msg := struct {
+	jsonmsg, _ := json.Marshal(struct {
 		Id         string `json:"id"`
 		Resolution string `json:"resolution"`
-	}{"8", "1min"}
-
-	jsonmsg, _ := json.Marshal(msg)
+	}{"8", "1min"})
 
 	res, err := http.Post(ts.URL+"/obj", "appication/json", bytes.NewBuffer(jsonmsg))
 	if err != nil {
