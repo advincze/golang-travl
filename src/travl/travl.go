@@ -39,7 +39,6 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 
 func createObject(w http.ResponseWriter, r *http.Request) {
 
-	//vars := mux.Vars(r)
 	t := mux.Vars(r)["type"]
 
 	body, _ := ioutil.ReadAll(r.Body)
@@ -55,7 +54,6 @@ func createObject(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not parse json document", http.StatusInternalServerError)
 	}
 
-	// save v
 	fmt.Printf("create object type: %s : %v \n", t, v)
 
 	type Resp struct {
