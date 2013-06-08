@@ -3,7 +3,18 @@ travl
 
 **build**:
 
+	// get sources
+	% git clone git@github.com:advincze/golang-travl.git
+
+	// setup gopath	
+	% cd golang-travl
+	% export GOPATH=`pwd`
+	
+	// get dependencies
 	% go get "github.com/gorilla/mux"
+	% go get "github.com/willf/bitset"
+	
+	// build
 	% go install ./...
 	
 
@@ -13,7 +24,7 @@ travl
 	
 **get help**:
 
-	% bit/travl -help
+	% bin/travl -help
 	
 
 **use**:
