@@ -38,6 +38,10 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func createObject(w http.ResponseWriter, r *http.Request) {
+
+	//vars := mux.Vars(r)
+	t := mux.Vars(r)["type"]
+
 	body, _ := ioutil.ReadAll(r.Body)
 
 	type Message struct {
@@ -52,6 +56,7 @@ func createObject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// save v
+	fmt.Printf("create object type: %s : %v \n", t, v)
 
 	type Resp struct {
 		Id string `json:"id"`
