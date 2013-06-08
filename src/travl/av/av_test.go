@@ -72,6 +72,7 @@ func TestGetAvAt(t *testing.T) {
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 	ba := NewBitAv()
 	ba.SetAvAt(t1, true)
+
 	//w
 	res := ba.GetAvAt(t1)
 
@@ -171,14 +172,14 @@ func TestGetAvFromAfterSet(t *testing.T) {
 
 	//t
 	if baRes.Bs.Len() != 10 {
-		t.Errorf("the baRes bitset should have length 5")
+		t.Errorf("the baRes bitset should have length 10")
 	}
 	if baRes.Bs.Any() {
 		t.Errorf("none of the bits should be set")
 	}
 }
 
-func _TestGetAvFromInsideSet(t *testing.T) {
+func TestGetAvFromInsideSet(t *testing.T) {
 	// |0...0001111111111111111100000...000|
 	//          |----get-----|
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
@@ -193,7 +194,7 @@ func _TestGetAvFromInsideSet(t *testing.T) {
 
 	//t
 	if baRes.Bs.Len() != 30 {
-		t.Errorf("the baRes bitset should have length 5")
+		t.Errorf("the baRes bitset should have length 30")
 	}
 	if !baRes.Bs.All() {
 		t.Errorf("all of the bits should be set")
@@ -202,11 +203,23 @@ func _TestGetAvFromInsideSet(t *testing.T) {
 }
 
 func TestGetAvFromItersectSet(t *testing.T) {
-	// |00..00000000111000110111111100000...00|
+	// |00..000000001111111111100000...00|
 	//         |---get---|
+	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
+	t2 := t1.Add(15 * time.Minute)
+	t3 := t1.Add(45 * time.Minute)
+	t4 := t1.Add(55 * time.Minute)
+	ba := NewBitAv()
+	ba.SetAv(t2, t4, true)
 
 	//w
+	baRes := ba.GetAv(t1, t3, Minute)
 
 	//t
-
+	if baRes.Bs.Len() != 45 {
+		t.Errorf("the baRes bitset should have length 40, was %v \n", baRes.Bs.Len())
+	}
+	if baRes.Bs.Count() != 30 {
+		t.Errorf("30 of the bits should be set \n")
+	}
 }

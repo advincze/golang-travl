@@ -68,6 +68,14 @@ travl
 	}'
 	
 *retrieve*
+	
+	% curl 'localhost:1982/obj/13/_av?at=2013-05-05'
+	{
+		"at" 		: "2013-05-05T00:00:00",
+		internal_resolution: "1min",
+		defined:	: true
+		available:	: true
+	}
 
 	% curl 'localhost:1982/obj/13/_av?from=2013-05-05&to=2013-05-06&resolution=hour'
 	{
