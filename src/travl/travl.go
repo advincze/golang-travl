@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
+	"time"
 	"travl/av"
 )
 
@@ -24,7 +25,6 @@ func main() {
 
 func createRouter() http.Handler {
 	r := mux.NewRouter()
-
 	r.HandleFunc("/{type}", createObject).Methods("POST")
 	r.HandleFunc("/{type}/{id}", deleteObject).Methods("DELETE")
 	r.HandleFunc("/{type}/{id}/_av", defineAvailability).Methods("PUT")
@@ -81,9 +81,23 @@ func defineAvailability(w http.ResponseWriter, r *http.Request) {
 	t := vars["type"]
 	id := vars["id"]
 	_, ob := av.GetObjectTypeAndObject(t, id)
+	body, _ := ioutil.ReadAll(r.Body)
+	if len(body) != 0 {
+		type Message struct {
+			From  time.Time `json:"from"`
+			To    time.Time `json:"to"`
+			Value string
+		}
 
-	fmt.Fprintf(w, "defineAvailability, type: %v , id: %v , %v \n", t, id, ob)
+		var v *Message
+		err := json.Unmarshal(body, &v)
+		if err != nil {
+			http.Error(w, "could not parse json document", http.StatusInternalServerError)
+		}
 
+		//ob.Ba.SetAv(from, to, value)
+		fmt.Fprintf(w, "defineAvailability, type: %v , id: %v , %v, %v n", t, id, ob, v)
+	}
 }
 
 func retrieveAvailability(w http.ResponseWriter, r *http.Request) {

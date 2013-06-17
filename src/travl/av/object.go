@@ -24,6 +24,7 @@ func GetObjectType(name string) *objectType {
 
 type object struct {
 	Id string
+	Ba BitAv
 }
 
 func (ot *objectType) NewObject() *object {
@@ -32,7 +33,7 @@ func (ot *objectType) NewObject() *object {
 	for _, ok := ot.Objects[id]; ok; id = strconv.Itoa(i) {
 		i += 1
 	}
-	ob := &object{Id: id}
+	ob := &object{Id: id, Ba: NewMockBitAv()}
 	ot.Objects[id] = ob
 	return ob
 }
@@ -41,7 +42,7 @@ func (ot *objectType) GetObject(id string) *object {
 	ob, ok := ot.Objects[id]
 
 	if !ok {
-		ob = &object{Id: id}
+		ob = &object{Id: id, Ba: NewMockBitAv()}
 
 		ot.Objects[id] = ob
 	}
