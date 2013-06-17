@@ -5,21 +5,37 @@ import (
 )
 
 type BitVectorImpl struct {
-	data bitset.BitSet
+	bs *bitset.BitSet
 }
 
-func NewBitVectorImpl() *BitVectorImpl {
-	return &BitVectorImpl{data: *bitset.New()}
+func NewBitVector(length uint) *BitVectorImpl {
+	return &BitVectorImpl{bs: bitset.New(length)}
 }
+
+// func NewBitVectorImpl() *BitVectorImpl {
+// 	return bitset.New()
+// }
 
 func (bitVector *BitVectorImpl) Len() uint {
-	return bitVector.data.Len()
+	return bitVector.bs.Len()
+}
+
+func (bitVector *BitVectorImpl) All() bool {
+	return bitVector.bs.All()
+}
+
+func (bitVector *BitVectorImpl) Any() bool {
+	return bitVector.bs.Any()
+}
+
+func (bitVector *BitVectorImpl) Count() uint {
+	return bitVector.bs.Count()
 }
 
 func (bitVector *BitVectorImpl) Set(i uint, value bool) {
-	bitVector.data.SetTo(i, value)
+	bitVector.bs.SetTo(i, value)
 }
 
 func (bitVector *BitVectorImpl) Get(i uint) bool {
-	return bitVector.data.Test(i)
+	return bitVector.bs.Test(i)
 }
