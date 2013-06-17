@@ -5,8 +5,12 @@ import (
 	"time"
 )
 
+func newBitAv() BitAv {
+	return NewMockBitAv()
+}
+
 func TestNewBitAvShouldNotBeNil(t *testing.T) {
-	ba := NewMockBitAv()
+	ba := newBitAv()
 
 	if ba == nil {
 		t.Errorf("BitAv should not be nil")
@@ -14,7 +18,7 @@ func TestNewBitAvShouldNotBeNil(t *testing.T) {
 }
 
 func TestSetAvAtShouldNotPanic(t *testing.T) {
-	ba := NewMockBitAv()
+	ba := newBitAv()
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 
 	defer func() {
@@ -30,7 +34,7 @@ func TestGetAvAtEmpty(t *testing.T) {
 	// |0...0001111111111111111100000...000|
 	//          |----get-----|
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	ba := NewMockBitAv()
+	ba := newBitAv()
 
 	//w
 	res := ba.GetAt(t1)
@@ -45,7 +49,7 @@ func TestGetAvAt(t *testing.T) {
 	// |0...0001111111111111111100000...000|
 	//          |----get-----|
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	ba := NewMockBitAv()
+	ba := newBitAv()
 	ba.SetAt(t1, true)
 
 	//w
@@ -58,7 +62,7 @@ func TestGetAvAt(t *testing.T) {
 }
 
 func TestSetAvFromToShouldNotPanic(t *testing.T) {
-	ba := NewMockBitAv()
+	ba := newBitAv()
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 	t2 := t1.Add(24 * time.Hour)
 
@@ -75,7 +79,7 @@ func TestGetAvNothingFromEmpty(t *testing.T) {
 	// |000000...000000000000|
 	//       || get
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	ba := NewMockBitAv()
+	ba := newBitAv()
 
 	BitVector := ba.Get(t1, t1, Minute)
 
@@ -93,7 +97,7 @@ func TestGetAvFromEmpty(t *testing.T) {
 	//       |---get---|
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 	t2 := t1.Add(5 * time.Minute)
-	ba := NewMockBitAv()
+	ba := newBitAv()
 
 	//w
 	bitVector := ba.Get(t1, t2, Minute)
@@ -115,7 +119,7 @@ func TestGetAvFromBeforeSet(t *testing.T) {
 	t2 := t1.Add(5 * time.Minute)
 	t3 := t1.Add(25 * time.Minute)
 	t4 := t1.Add(45 * time.Minute)
-	ba := NewMockBitAv()
+	ba := newBitAv()
 	ba.Set(t3, t4, true)
 
 	//w
@@ -138,7 +142,7 @@ func TestGetAvFromAfterSet(t *testing.T) {
 	t2 := t1.Add(15 * time.Minute)
 	t3 := t1.Add(45 * time.Minute)
 	t4 := t1.Add(55 * time.Minute)
-	ba := NewMockBitAv()
+	ba := newBitAv()
 	ba.Set(t1, t2, true)
 
 	//w
@@ -161,7 +165,7 @@ func TestGetAvFromInsideSet(t *testing.T) {
 	t2 := t1.Add(15 * time.Minute)
 	t3 := t1.Add(45 * time.Minute)
 	t4 := t1.Add(55 * time.Minute)
-	ba := NewMockBitAv()
+	ba := newBitAv()
 	ba.Set(t1, t4, true)
 
 	//w
@@ -185,7 +189,7 @@ func TestGetAvFromItersectSet(t *testing.T) {
 	t2 := t1.Add(15 * time.Minute)
 	t3 := t1.Add(45 * time.Minute)
 	t4 := t1.Add(55 * time.Minute)
-	ba := NewMockBitAv()
+	ba := newBitAv()
 	ba.Set(t2, t4, true)
 
 	//w
@@ -202,7 +206,7 @@ func TestGetAvFromItersectSet(t *testing.T) {
 
 func BenchmarkSetAvTwoYearsWorkingHours(b *testing.B) {
 
-	ba := NewMockBitAv()
+	ba := newBitAv()
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 	t2 := time.Date(1982, 2, 8, 0, 0, 0, 0, time.UTC)
 

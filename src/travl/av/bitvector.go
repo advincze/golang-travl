@@ -12,10 +12,6 @@ func NewBitVector(length uint) *BitVectorImpl {
 	return &BitVectorImpl{bs: bitset.New(length)}
 }
 
-// func NewBitVectorImpl() *BitVectorImpl {
-// 	return bitset.New()
-// }
-
 func (bitVector *BitVectorImpl) Len() uint {
 	return bitVector.bs.Len()
 }
