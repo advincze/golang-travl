@@ -1,6 +1,7 @@
 package av
 
 import (
+	"github.com/willf/bitset"
 	"time"
 )
 
@@ -8,16 +9,7 @@ type BitAv interface {
 	Set(from, to time.Time, value bool)
 	SetAt(at time.Time, value bool)
 	GetAt(at time.Time) bool
-	Get(from, to time.Time, res TimeResolution) BitVector
-}
-
-type BitVector interface {
-	Len() uint
-	Set(i uint, value bool)
-	Get(i uint) bool
-	Count() uint
-	All() bool
-	Any() bool
+	Get(from, to time.Time, res TimeResolution) *bitset.BitSet
 }
 
 func timeToUnit(t time.Time, res TimeResolution) int64 {

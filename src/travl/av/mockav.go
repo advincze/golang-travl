@@ -71,20 +71,21 @@ func (ba *MockBitAv) getAvAtUnit(atUnit int64) bool {
 
 // 	Get(from, to time.Time, res TimeResolution) BitVector
 
-func (ba *MockBitAv) Get(from, to time.Time, res TimeResolution) BitVector {
+func (ba *MockBitAv) Get(from, to time.Time, res TimeResolution) *bitset.BitSet {
 	fromUnit := timeToUnit(from, ba.internalRes)
 	toUnit := timeToUnit(to, ba.internalRes)
 	return ba.getAvUnit(fromUnit, toUnit)
 }
 
-func (ba *MockBitAv) getAvUnit(from, to int64) BitVector {
+func (ba *MockBitAv) getAvUnit(from, to int64) *bitset.BitSet {
 	// println("getfromto", from, to)
 	length := uint(to - from)
-	data := NewBitVector(length)
+	// data := NewBitVector(length)
+	data := bitset.New(length)
 	var value bool
 	for i, k := from, uint(0); i < to; i, k = i+1, k+1 {
 		value = ba.bs.Test(uint(i))
-		data.Set(k, value)
+		data.SetTo(k, value)
 		// println(value, i, k)
 	}
 	return data
