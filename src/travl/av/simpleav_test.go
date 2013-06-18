@@ -6,7 +6,7 @@ import (
 )
 
 func newBitAv() BitAv {
-	return NewMockBitAv()
+	return NewSimpleBitAv()
 }
 
 func TestNewBitAvShouldNotBeNil(t *testing.T) {
@@ -106,10 +106,9 @@ func TestGetAvFromEmpty(t *testing.T) {
 	if bitVector.Len() != 5 {
 		t.Errorf("the baRes bitset should have length 5")
 	}
-	//TODO
-	// if bitVector.Bs.Any() {
-	// 	t.Errorf("none of the bits should be set")
-	// }
+	if bitVector.Any() {
+		t.Errorf("none of the bits should be set")
+	}
 }
 
 func TestGetAvFromBeforeSet(t *testing.T) {
@@ -129,10 +128,9 @@ func TestGetAvFromBeforeSet(t *testing.T) {
 	if bitVector.Len() != 5 {
 		t.Errorf("the bitVector bitset should have length 5")
 	}
-	//TODO
-	// if bitVector.Any() {
-	// 	t.Errorf("none of the bits should be set")
-	// }
+	if bitVector.Any() {
+		t.Errorf("none of the bits should be set")
+	}
 }
 
 func TestGetAvFromAfterSet(t *testing.T) {
@@ -152,10 +150,9 @@ func TestGetAvFromAfterSet(t *testing.T) {
 	if bitVector.Len() != 10 {
 		t.Errorf("the bitVector bitset should have length 10")
 	}
-	//TODO
-	// if baRes.Bs.Any() {
-	// 	t.Errorf("none of the bits should be set")
-	// }
+	if bitVector.Any() {
+		t.Errorf("none of the bits should be set")
+	}
 }
 
 func TestGetAvFromInsideSet(t *testing.T) {
@@ -175,10 +172,9 @@ func TestGetAvFromInsideSet(t *testing.T) {
 	if bitVector.Len() != 30 {
 		t.Errorf("the baRes bitset should have length 30")
 	}
-	//TODO
-	// if !baRes.Bs.All() {
-	// 	t.Errorf("all of the bits should be set")
-	// }
+	if !bitVector.All() {
+		t.Errorf("all of the bits should be set")
+	}
 
 }
 
