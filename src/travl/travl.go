@@ -86,17 +86,17 @@ func defineAvailability(w http.ResponseWriter, r *http.Request) {
 		type Message struct {
 			From  time.Time `json:"from"`
 			To    time.Time `json:"to"`
-			Value string
+			Value byte      `json:"value"`
 		}
 
-		var v *Message
-		err := json.Unmarshal(body, &v)
+		var m *Message
+		err := json.Unmarshal(body, &m)
 		if err != nil {
 			http.Error(w, "could not parse json document", http.StatusInternalServerError)
 		}
 
-		//ob.Ba.SetAv(from, to, value)
-		fmt.Fprintf(w, "defineAvailability, type: %v , id: %v , %v, %v n", t, id, ob, v)
+		ob.Ba.Set(m.From, m.To, m.Value == 1)
+		fmt.Fprintf(w, "defineAvailability, type: %v , id: %v , %v, %v n", t, id, ob, m)
 	}
 }
 

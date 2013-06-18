@@ -13,7 +13,9 @@ import (
 )
 
 func TestDB(t *testing.T) {
-	f, _ := os.Create("myfile.db")
+	fname := "myfile.db"
+	f, _ := os.Create(fname)
+	defer os.Remove(fname)
 	s, _ := gkvlite.NewStore(f)
 	c := s.SetCollection("cars", nil)
 
