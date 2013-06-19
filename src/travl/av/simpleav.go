@@ -1,35 +1,13 @@
 package av
 
 import (
-	"bytes"
 	"github.com/willf/bitset"
 	"time"
 )
 
 type SimpleBitAv struct {
 	internalRes TimeResolution
-	offset      int64
 	bs          *bitset.BitSet
-}
-
-type bitAvResult struct {
-	From time.Time
-	To   time.Time
-	Bs   *bitset.BitSet
-}
-
-func (ba *bitAvResult) String() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("BitAvResult{ ")
-	buffer.WriteString("from:")
-	buffer.WriteString(ba.From.String())
-	buffer.WriteString(", to:")
-	buffer.WriteString(ba.To.String())
-	buffer.WriteString(", data:")
-	bits := ba.Bs.DumpAsBits()
-	buffer.WriteString(bits[:ba.Bs.Len()])
-	buffer.WriteString(" }")
-	return buffer.String()
 }
 
 func NewSimpleBitAv() *SimpleBitAv {
