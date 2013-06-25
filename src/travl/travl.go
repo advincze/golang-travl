@@ -59,6 +59,7 @@ func createObject(w http.ResponseWriter, r *http.Request) {
 		bytes, _ := json.Marshal(ob)
 		w.WriteHeader(http.StatusCreated)
 		fmt.Fprintf(w, "%s", bytes)
+
 	} else {
 		ob := ot.NewObject()
 		bytes, _ := json.Marshal(ob)
@@ -95,7 +96,7 @@ func defineAvailability(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "could not parse json document", http.StatusInternalServerError)
 		}
 
-		ob.Ba.Set(m.From, m.To, m.Value == 1)
+		ob.Ba.Set(m.From, m.To, m.Value)
 		fmt.Fprintf(w, "defineAvailability, type: %v , id: %v , %v, %v n", t, id, ob, m)
 	}
 }

@@ -86,7 +86,7 @@ func TestShouldDefineAvailability(t *testing.T) {
 		From  time.Time `json:"from"`
 		To    time.Time `json:"to"`
 		Value byte      `json:"value"`
-	}{time.Now(), time.Now(), 1})
+	}{time.Now(), time.Now().Add(25 * time.Hour), 1})
 
 	req, _ := http.NewRequest("PUT", ts.URL+"/obj/5/_av", bytes.NewBuffer(createmsg))
 	res, err := http.DefaultClient.Do(req)
