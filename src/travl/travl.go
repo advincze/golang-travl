@@ -102,7 +102,14 @@ func defineAvailability(w http.ResponseWriter, r *http.Request) {
 }
 
 func retrieveAvailability(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "retrieveAvailability\n")
+	q := r.URL.Query()
+	from := q.Get("from")
+	to := q.Get("to")
+	tFrom, err := time.Parse(time.RFC3339, from)
+	println(err)
+	resolution := q.Get("resolution")
+
+	fmt.Fprintf(w, "retrieveAvailability, %s %s %s, %v \n", from, to, resolution, tFrom)
 }
 
 func addEvent(w http.ResponseWriter, r *http.Request) {
