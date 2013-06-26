@@ -27,14 +27,84 @@ func (av *BitAv3) Set(from, to time.Time, value byte) {
 }
 
 func (av *BitAv3) Get(from, to time.Time, res TimeResolution) *BitVector {
-	fromUnit := timeToUnit(from, av.internalRes)
-	toUnit := timeToUnit(to, av.internalRes)
-	arr := av.GetAv(fromUnit, toUnit)
-	bv := &BitVector{
-		Resolution: res,
-		Data:       arr,
-		Start:      floorDate(from, res)}
-	return bv
+
+	if res > av.internalRes {
+		//15min > 5min
+		// lower resolution
+		fromUnit := timeToUnit(from, res)
+		toUnit := timeToUnit(to, res)
+		arr := av.GetAv(fromUnit, toUnit)
+		// internal:[0,0,0,1,1,1,0,0,0]
+		// -> res:  [--0--,--1--,--0--]
+		factor := int(res / av.internalRes)
+		reducedArr := reduceByFactor(arr, factor, reduceAllOne)
+		bv := &BitVector{
+			Resolution: res,
+			Data:       reducedArr,
+			Start:      floorDate(from, res)}
+		return bv
+	} else if res < av.internalRes {
+		// 1min < 5min
+		// higher resolution
+		fromUnit := timeToUnit(from, av.internalRes)
+		toUnit := timeToUnit(to, av.internalRes)
+		arr := av.GetAv(fromUnit, toUnit)
+		// internal: [0        ,1          ,1        ]
+		// -> res  : [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1]
+		//  multiply by factor
+		factor := int(av.internalRes / res)
+		arrMultiplied := multiplyByFactor(arr, factor)
+		bv := &BitVector{
+			Resolution: res,
+			Data:       arrMultiplied,
+			Start:      floorDate(from, av.internalRes)}
+		return bv
+		// TODO cut off excess:
+		//   [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1]
+		// ->      [0,0,1,1,1,1,1,1,1,1,1]
+	} else {
+		// internal resolution
+		fromUnit := timeToUnit(from, av.internalRes)
+		toUnit := timeToUnit(to, av.internalRes)
+		arr := av.GetAv(fromUnit, toUnit)
+		bv := &BitVector{
+			Resolution: res,
+			Data:       arr,
+			Start:      floorDate(from, res)}
+		return bv
+	}
+}
+
+func multiplyByFactor(data []byte, factor int) []byte {
+	length := len(data) * factor
+	var multipliedData []byte = make([]byte, length)
+	for _, b := range data {
+		j := 0
+		for i := 0; i < factor; i++ {
+			multipliedData[j] = b
+			j++
+		}
+	}
+	return multipliedData
+}
+
+func reduceByFactor(data []byte, factor int, reduceFn func([]byte) byte) []byte {
+	length := len(data) / factor
+	var reducedData []byte = make([]byte, length)
+	for i, j := 0, 0; i < length; i++ {
+		reducedData[i] = reduceFn(data[j : j+factor])
+		j += factor
+	}
+	return reducedData
+}
+
+func reduceAllOne(data []byte) byte {
+	for _, b := range data {
+		if b != 1 {
+			return 0
+		}
+	}
+	return 1
 }
 
 func (av *BitAv3) SetAt(at time.Time, value byte) {
@@ -82,10 +152,10 @@ func NewSegment(start int) *Segment {
 	return &Segment{Int: *big.NewInt(0), start: start}
 }
 
-func NewBitAv3() *BitAv3 {
+func NewBitAv3(res TimeResolution) *BitAv3 {
 	return &BitAv3{
 		segments:    make(map[int]*Segment),
-		internalRes: Minute,
+		internalRes: res,
 	}
 }
 

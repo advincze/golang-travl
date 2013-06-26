@@ -6,7 +6,7 @@ import (
 )
 
 func newBitAv() *BitAv3 {
-	return NewBitAv3() //NewSimpleBitAv()
+	return NewBitAv3(Minute) //NewSimpleBitAv()
 }
 
 func TestNewBitAvShouldNotBeNil(t *testing.T) {
