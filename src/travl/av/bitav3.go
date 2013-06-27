@@ -165,7 +165,7 @@ func NewBitAv3(res TimeResolution) *BitAv3 {
 	return &BitAv3{
 		segments:    make(map[int]*Segment),
 		internalRes: res,
-		segmentSize: 100,
+		segmentSize: int(Day / res),
 	}
 }
 
