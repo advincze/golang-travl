@@ -11,7 +11,7 @@ type BitAv interface {
 	GetAt(at time.Time) byte
 }
 
-func timeToUnit(t time.Time, res TimeResolution) int {
+func timeToUnitFloor(t time.Time, res TimeResolution) int {
 	return int(t.Unix() / int64(res))
 }
 
