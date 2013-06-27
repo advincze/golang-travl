@@ -10,6 +10,7 @@ import (
 type BitAv3 struct {
 	internalRes TimeResolution
 	segments    map[int]*Segment
+	segmentSize int
 }
 
 func (av *BitAv3) size() int {
@@ -24,6 +25,7 @@ func (av *BitAv3) Set(from, to time.Time, value byte) {
 	fromUnit := timeToUnit(from, av.internalRes)
 	toUnit := timeToUnit(to, av.internalRes)
 	av.SetAv(fromUnit, toUnit, value)
+	println("size after set:", av.size())
 }
 
 func (av *BitAv3) Get(from, to time.Time, res TimeResolution) *BitVector {
@@ -31,12 +33,19 @@ func (av *BitAv3) Get(from, to time.Time, res TimeResolution) *BitVector {
 	if res > av.internalRes {
 		//15min > 5min
 		// lower resolution
-		fromUnit := timeToUnit(from, res)
-		toUnit := timeToUnit(to, res)
+		println("get w lower res")
+
+		fromUnit := timeToUnit(floorDate(from, res), av.internalRes)
+		toUnit := timeToUnit(floorDate(to, res), av.internalRes)
+		println("from", from.String(), fromUnit)
+		println("to", to.String(), toUnit)
 		arr := av.GetAv(fromUnit, toUnit)
+		println("arr", len(arr))
+
 		// internal:[0,0,0,1,1,1,0,0,0]
 		// -> res:  [--0--,--1--,--0--]
 		factor := int(res / av.internalRes)
+		println("factor", factor)
 		reducedArr := reduceByFactor(arr, factor, reduceAllOne)
 		bv := &BitVector{
 			Resolution: res,
@@ -118,7 +127,7 @@ func (av *BitAv3) GetAt(at time.Time) byte {
 	return byte(arr[0])
 }
 
-const segmentSize = 60 * 24
+//const segmentSize = 60 * 24
 
 type Segment struct {
 	big.Int
@@ -156,11 +165,12 @@ func NewBitAv3(res TimeResolution) *BitAv3 {
 	return &BitAv3{
 		segments:    make(map[int]*Segment),
 		internalRes: res,
+		segmentSize: 100,
 	}
 }
 
-func segmentStart(i int) int {
-	return i - i%segmentSize
+func (av *BitAv3) segmentStart(i int) int {
+	return i - i%av.segmentSize
 }
 
 func (av *BitAv3) getOrCreateSegment(startValue int) *Segment {
@@ -174,9 +184,9 @@ func (av *BitAv3) getOrCreateSegment(startValue int) *Segment {
 }
 
 func (av *BitAv3) SetAv(from, to int, value byte) {
-	currentSegment := av.getOrCreateSegment(segmentStart(from))
-	for i, j := from, from%segmentSize; i < to; i, j = i+1, j+1 {
-		if j == segmentSize {
+	currentSegment := av.getOrCreateSegment(av.segmentStart(from))
+	for i, j := from, from%av.segmentSize; i < to; i, j = i+1, j+1 {
+		if j == av.segmentSize {
 			currentSegment = av.getOrCreateSegment(i)
 			j = 0
 		}
@@ -188,9 +198,9 @@ func (av *BitAv3) SetAv(from, to int, value byte) {
 func (av *BitAv3) GetAv(from, to int) []byte {
 	length := to - from
 	result := make([]byte, length)
-	currentSegment := av.getOrCreateSegment(segmentStart(from))
-	for i, j := 0, from%segmentSize; i < length; i, j = i+1, j+1 {
-		if j == segmentSize {
+	currentSegment := av.getOrCreateSegment(av.segmentStart(from))
+	for i, j := 0, from%av.segmentSize; i < length; i, j = i+1, j+1 {
+		if j == av.segmentSize {
 			currentSegment = av.getOrCreateSegment(i + from)
 			j = 0
 		}

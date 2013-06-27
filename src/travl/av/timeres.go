@@ -18,13 +18,31 @@ func (tr TimeResolution) String() string {
 	case Minute:
 		return "min"
 	case Minute5:
-		return "5 min"
+		return "5min"
 	case Minute15:
-		return "15 min"
+		return "15min"
 	case Hour:
 		return "hour"
 	case Day:
 		return "day"
+	}
+	panic("no other options")
+}
+
+func ParseTimeResolution(s string) TimeResolution {
+	switch s {
+	case "sec":
+		return sec
+	case "min":
+		return Minute
+	case "5min":
+		return Minute5
+	case "15min":
+		return Minute15
+	case "hour":
+		return Hour
+	case "day":
+		return Day
 	}
 	panic("no other options")
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/steveyen/gkvlite"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -79,22 +80,46 @@ func TestShouldCreateObjectWithoutID(t *testing.T) {
 	}
 }
 
-func TestShouldDefineAvailability(t *testing.T) {
-	ts := httptest.NewServer(createRouter())
-	defer ts.Close()
+func createDefineAvMessage(from, to time.Time, value byte) []byte {
 	createmsg, _ := json.Marshal(struct {
 		From  time.Time `json:"from"`
 		To    time.Time `json:"to"`
 		Value byte      `json:"value"`
-	}{time.Now(), time.Now().Add(25 * time.Hour), 1})
+	}{from, to, value})
+	return createmsg
+}
 
-	req, _ := http.NewRequest("PUT", ts.URL+"/obj/5/_av", bytes.NewBuffer(createmsg))
+func callPUT(url string, msg []byte) *http.Response {
+	req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(msg))
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
+	return res
+}
+
+func TestShouldDefineAvailability(t *testing.T) {
+	ts := httptest.NewServer(createRouter())
+	defer ts.Close()
+
+	createmsg := createDefineAvMessage(time.Now(), time.Now().Add(25*time.Hour), 1)
+	res := callPUT(ts.URL+"/obj/5/_av", createmsg)
 	if res.StatusCode != http.StatusOK {
 		t.Errorf("statuscode should be OK, was %v\n", res.StatusCode)
 	}
 
+}
+
+func TestShouldRetrieveAvailability(t *testing.T) {
+	ts := httptest.NewServer(createRouter())
+	defer ts.Close()
+	createmsg := createDefineAvMessage(time.Now(), time.Now().Add(45*time.Hour), 1)
+	callPUT(ts.URL+"/obj/5/_av", createmsg)
+	res, err := http.Get(ts.URL + "/obj/5/_av?from=2013-06-28&to=2013-06-30&resolution=day")
+	if err != nil {
+		t.Error(err.Error())
+	}
+	defer res.Body.Close()
+	contents, err := ioutil.ReadAll(res.Body)
+	println("contents", string(contents))
 }
