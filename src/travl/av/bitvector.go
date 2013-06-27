@@ -15,12 +15,10 @@ type BitVector struct {
 func (b *BitVector) String() string {
 	var buffer bytes.Buffer
 
-	buffer.WriteString("BitVector{")
-	buffer.WriteRune('\n')
+	buffer.WriteString("BitVector {")
 	buffer.WriteString("res: ")
 	buffer.WriteString(b.Resolution.String())
 	buffer.WriteString(", ")
-	buffer.WriteRune('\n')
 	buffer.WriteString("start: ")
 	buffer.WriteString(b.Start.Format(time.RFC3339))
 	buffer.WriteString(",")
@@ -36,6 +34,7 @@ func (b *BitVector) String() string {
 	}
 	buffer.WriteString("],")
 	buffer.WriteRune('\n')
+	buffer.WriteRune('}')
 
 	return buffer.String()
 }

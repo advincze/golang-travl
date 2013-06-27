@@ -6,7 +6,7 @@ import (
 )
 
 func newBitAv(res TimeResolution) BitAv {
-	return NewBitAv3(res) //NewSimpleBitAv()
+	return NewBitAv3(res)
 }
 
 func TestNewBitAvShouldNotBeNil(t *testing.T) {
@@ -31,8 +31,8 @@ func TestSetAvAtShouldNotPanic(t *testing.T) {
 }
 
 func TestGetAvAtEmpty(t *testing.T) {
-	// |0...0001111111111111111100000...000|
-	//          |----get-----|
+	// |0...000000000000000000000...000|
+	//          |get
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 	ba := newBitAv(Minute5)
 
@@ -42,9 +42,9 @@ func TestGetAvAtEmpty(t *testing.T) {
 	}
 }
 
-func TestGetAvAt(t *testing.T) {
+func TestGetAvAtSet(t *testing.T) {
 	// |0...0001111111111111111100000...000|
-	//          |----get-----|
+	//          |-get
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 	ba := newBitAv(Minute5)
 	ba.SetAt(t1, 1)
@@ -55,6 +55,22 @@ func TestGetAvAt(t *testing.T) {
 	//t
 	if res == 0 {
 		t.Errorf("the bit should be set")
+	}
+}
+
+func TestGetAvAtUnset(t *testing.T) {
+	// |0...0001111111111111111100000...000|
+	//          |-get
+	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
+	ba := newBitAv(Minute5)
+	ba.SetAt(t1, 0)
+
+	//w
+	res := ba.GetAt(t1)
+
+	//t
+	if res != 0 {
+		t.Errorf("the bit should be unset")
 	}
 }
 
