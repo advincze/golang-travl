@@ -356,14 +356,36 @@ func TestSetAvTwoYearsWorkingHoursBackwards(t *testing.T) {
 
 }
 
-func BenchmarkSetAvTwoYearsWorkingHours(b *testing.B) {
+func BenchmarkSetAvOneDay(b *testing.B) {
 
 	ba := newBitAv(Minute5)
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	t2 := time.Date(1982, 2, 8, 0, 0, 0, 0, time.UTC)
 
 	for i := 0; i < b.N; i++ {
-		ba.Set(t1, t2, 1)
+		ba.Set(t1, t1.Add(24*time.Hour), 1)
+		t1 = t1.Add(48 * time.Hour)
+	}
+}
+
+func BenchmarkGetAvOneDay(b *testing.B) {
+
+	ba := newBitAv(Minute5)
+	t0 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
+	t1 := t0
+
+	for i := 0; i < 2*365; i++ {
+		ba.Set(t1, t1.Add(8*time.Hour), 1)
+		ba.Set(t1.Add(8*time.Hour), t1.Add(12*time.Hour), 0)
+		t1 = t1.Add(24 * time.Hour)
 	}
 
+	t1 = t0.Add(4 * time.Hour)
+	for i := 0; i < b.N; i++ {
+		ba.Get(t1, t1.Add(72*time.Hour), Hour)
+
+		t1 = t1.Add(23 * time.Hour)
+		if i%365 == 0 {
+			t1 = t0
+		}
+	}
 }
