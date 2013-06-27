@@ -6,21 +6,21 @@ import (
 	"time"
 )
 
-type BitAv3 struct {
+type BitSegmentAv struct {
 	internalRes TimeResolution
 	segments    map[int]*BitSegment
 	segmentSize int
 }
 
-func NewBitAv3(res TimeResolution) *BitAv3 {
-	return &BitAv3{
+func NewBitSegmentAv(res TimeResolution) *BitSegmentAv {
+	return &BitSegmentAv{
 		segments:    make(map[int]*BitSegment),
 		internalRes: res,
 		segmentSize: int(Day / res),
 	}
 }
 
-func (av *BitAv3) size() int {
+func (av *BitSegmentAv) size() int {
 	var size int
 	for _, segment := range av.segments {
 		size += len(segment.Bytes())
@@ -28,14 +28,14 @@ func (av *BitAv3) size() int {
 	return size
 }
 
-func (av *BitAv3) Set(from, to time.Time, value byte) {
+func (av *BitSegmentAv) Set(from, to time.Time, value byte) {
 	fromUnit := timeToUnitFloor(from, av.internalRes)
 	toUnit := timeToUnitFloor(to, av.internalRes)
 	av.setUnitInternal(fromUnit, toUnit, value)
 	//println("size after set:", av.size())
 }
 
-func (av *BitAv3) Get(from, to time.Time, res TimeResolution) *BitVector {
+func (av *BitSegmentAv) Get(from, to time.Time, res TimeResolution) *BitVector {
 
 	if res > av.internalRes {
 		//15min > 5min
@@ -155,18 +155,18 @@ func reduceAllOne(data []byte) byte {
 	return 1
 }
 
-func (av *BitAv3) SetAt(at time.Time, value byte) {
+func (av *BitSegmentAv) SetAt(at time.Time, value byte) {
 	atUnit := timeToUnitFloor(at, av.internalRes)
 	av.setUnitInternal(atUnit, atUnit+1, value)
 }
 
-func (av *BitAv3) GetAt(at time.Time) byte {
+func (av *BitSegmentAv) GetAt(at time.Time) byte {
 	atUnit := timeToUnitFloor(at, av.internalRes)
 	arr := av.getUnitInternal(atUnit, atUnit+1)
 	return byte(arr[0])
 }
 
-func (av *BitAv3) String() string {
+func (av *BitSegmentAv) String() string {
 	var buffer bytes.Buffer
 
 	for _, segment := range av.segments {
@@ -179,11 +179,11 @@ func (av *BitAv3) String() string {
 	return buffer.String()
 }
 
-func (av *BitAv3) segmentStart(i int) int {
+func (av *BitSegmentAv) segmentStart(i int) int {
 	return i - i%av.segmentSize
 }
 
-func (av *BitAv3) getOrCreateBitSegment(startValue int) *BitSegment {
+func (av *BitSegmentAv) getOrCreateBitSegment(startValue int) *BitSegment {
 	if segment, ok := av.segments[startValue]; ok {
 		return segment
 	} else {
@@ -193,7 +193,7 @@ func (av *BitAv3) getOrCreateBitSegment(startValue int) *BitSegment {
 	}
 }
 
-func (av *BitAv3) getOrEmptyBitSegment(startValue int) *BitSegment {
+func (av *BitSegmentAv) getOrEmptyBitSegment(startValue int) *BitSegment {
 	if segment, ok := av.segments[startValue]; ok {
 		return segment
 	} else {
@@ -201,7 +201,7 @@ func (av *BitAv3) getOrEmptyBitSegment(startValue int) *BitSegment {
 	}
 }
 
-func (av *BitAv3) setUnitInternal(from, to int, value byte) {
+func (av *BitSegmentAv) setUnitInternal(from, to int, value byte) {
 	currentBitSegment := av.getOrCreateBitSegment(av.segmentStart(from))
 	for i, j := from, from%av.segmentSize; i < to; i, j = i+1, j+1 {
 		if j == av.segmentSize {
@@ -213,7 +213,7 @@ func (av *BitAv3) setUnitInternal(from, to int, value byte) {
 	//println(av.String())
 }
 
-func (av *BitAv3) getUnitInternal(from, to int) []byte {
+func (av *BitSegmentAv) getUnitInternal(from, to int) []byte {
 	length := to - from
 	result := make([]byte, length)
 	currentBitSegment := av.getOrEmptyBitSegment(av.segmentStart(from))
