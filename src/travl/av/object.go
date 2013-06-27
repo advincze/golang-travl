@@ -23,27 +23,30 @@ func GetObjectType(name string) *objectType {
 }
 
 type object struct {
-	Id string
-	Ba BitAv
+	ID     string
+	TypeID string
+	Ba     BitAv
 }
 
-func (ot *objectType) NewObject() *object {
+func (ot *objectType) newObject(id string, res TimeResolution) *object {
+	return &object{ID: id, TypeID: ot.Name, Ba: NewBitSegmentAv(id, res)}
+}
+
+func (ot *objectType) CreateObject() *object {
 	i := len(ot.Objects) + 1
 	id := strconv.Itoa(i)
 	for _, ok := ot.Objects[id]; ok; id = strconv.Itoa(i) {
 		i += 1
 	}
-	ob := &object{Id: id, Ba: NewBitSegmentAv(Minute5)}
+	ob := ot.newObject(id, Minute5)
 	ot.Objects[id] = ob
 	return ob
 }
 
 func (ot *objectType) GetObject(id string) *object {
 	ob, ok := ot.Objects[id]
-
 	if !ok {
-		ob = &object{Id: id, Ba: NewBitSegmentAv(Minute5)}
-
+		ob := ot.newObject(id, Minute5)
 		ot.Objects[id] = ob
 	}
 	return ob

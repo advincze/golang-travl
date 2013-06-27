@@ -36,13 +36,13 @@ func TestShouldCreateANewObject(t *testing.T) {
 	ot := GetObjectType("myType")
 
 	//w
-	ob := ot.NewObject()
+	ob := ot.CreateObject()
 
 	//t
 	if ob == nil {
 		t.Errorf("the created object must not be nil")
 	}
-	if ob.Id == "" {
+	if ob.ID == "" {
 		t.Errorf("the created object must have an id")
 	}
 }
@@ -50,16 +50,16 @@ func TestShouldCreateANewObject(t *testing.T) {
 func TestShouldGetObject(t *testing.T) {
 	//g
 	ot := GetObjectType("myType")
-	ob := ot.NewObject()
+	ob := ot.CreateObject()
 
 	//w
-	ob2 := ot.GetObject(ob.Id)
+	ob2 := ot.GetObject(ob.ID)
 
 	//t
 	if ob2 != ob {
 		t.Errorf("the retrieved object must be the same as the created")
 	}
-	if ob2.Id != ob.Id {
+	if ob2.ID != ob.ID {
 		t.Errorf("the retrieved object must have the same Id as the created one")
 	}
 }

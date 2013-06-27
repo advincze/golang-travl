@@ -7,13 +7,15 @@ import (
 )
 
 type BitSegmentAv struct {
+	ID          string
 	internalRes TimeResolution
 	segments    map[int]*BitSegment
 	segmentSize int
 }
 
-func NewBitSegmentAv(res TimeResolution) *BitSegmentAv {
+func NewBitSegmentAv(ID string, res TimeResolution) *BitSegmentAv {
 	return &BitSegmentAv{
+		ID:          ID,
 		segments:    make(map[int]*BitSegment),
 		internalRes: res,
 		segmentSize: int(Day / res),
@@ -153,6 +155,29 @@ func reduceAllOne(data []byte) byte {
 		}
 	}
 	return 1
+}
+
+func reduceAnyOne(data []byte) byte {
+	for _, b := range data {
+		if b == 1 {
+			return 1
+		}
+	}
+	return 0
+}
+
+func reduceMajority(data []byte) byte {
+	sizewin := len(data) / 2
+	count := 0
+	for _, b := range data {
+		if b == 1 {
+			count++
+		}
+	}
+	if count > sizewin {
+		return 1
+	}
+	return 0
 }
 
 func (av *BitSegmentAv) SetAt(at time.Time, value byte) {
