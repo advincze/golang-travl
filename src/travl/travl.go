@@ -98,7 +98,15 @@ func defineAvailability(w http.ResponseWriter, r *http.Request) {
 
 		ob.Ba.Set(m.From, m.To, m.Value)
 
-		fmt.Fprintf(w, "defineAvailability, type: %v , id: %v , %v, %v n", t, id, ob, m)
+		//fmt.Fprintf(w, "defineAvailability, type: %v , id: %v , %v, %v n", t, id, ob, m)
+		bb, _ := json.Marshal(struct {
+			Success   bool   `json:"success"`
+			Operation string `json:"operation"`
+		}{
+			Success:   true,
+			Operation: "define Availability",
+		})
+		fmt.Fprintf(w, string(bb))
 	}
 }
 
