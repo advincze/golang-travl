@@ -5,12 +5,12 @@ import (
 	"time"
 )
 
-func newBitAv() *BitAv3 {
-	return NewBitAv3(Minute) //NewSimpleBitAv()
+func newBitAv(res TimeResolution) BitAv {
+	return NewBitAv3(res) //NewSimpleBitAv()
 }
 
 func TestNewBitAvShouldNotBeNil(t *testing.T) {
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 
 	if ba == nil {
 		t.Errorf("BitAv should not be nil")
@@ -18,7 +18,7 @@ func TestNewBitAvShouldNotBeNil(t *testing.T) {
 }
 
 func TestSetAvAtShouldNotPanic(t *testing.T) {
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 
 	defer func() {
@@ -34,7 +34,7 @@ func TestGetAvAtEmpty(t *testing.T) {
 	// |0...0001111111111111111100000...000|
 	//          |----get-----|
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 
 	//t
 	if ba.GetAt(t1) == 1 {
@@ -46,7 +46,7 @@ func TestGetAvAt(t *testing.T) {
 	// |0...0001111111111111111100000...000|
 	//          |----get-----|
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 	ba.SetAt(t1, 1)
 
 	//w
@@ -59,7 +59,7 @@ func TestGetAvAt(t *testing.T) {
 }
 
 func TestSetAvFromToShouldNotPanic(t *testing.T) {
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 	t2 := t1.Add(24 * time.Hour)
 
@@ -76,7 +76,7 @@ func TestGetAvNothingFromEmpty(t *testing.T) {
 	// |000000...000000000000|
 	//       || get
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 
 	bitVector := ba.Get(t1, t1, Minute)
 
@@ -94,7 +94,7 @@ func TestGetAvFromEmpty(t *testing.T) {
 	//       |---get---|
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 	t2 := t1.Add(5 * time.Minute)
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 
 	//w
 	bitVector := ba.Get(t1, t2, Minute)
@@ -115,7 +115,7 @@ func TestGetAvFromBeforeSet(t *testing.T) {
 	t2 := t1.Add(5 * time.Minute)
 	t3 := t1.Add(25 * time.Minute)
 	t4 := t1.Add(45 * time.Minute)
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 	ba.Set(t3, t4, 1)
 
 	//w
@@ -137,7 +137,7 @@ func TestGetAvFromAfterSet(t *testing.T) {
 	t2 := t1.Add(15 * time.Minute)
 	t3 := t1.Add(45 * time.Minute)
 	t4 := t1.Add(55 * time.Minute)
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 	ba.Set(t1, t2, 1)
 
 	//w
@@ -159,15 +159,15 @@ func TestGetAvFromInsideSet(t *testing.T) {
 	t2 := t1.Add(15 * time.Minute)
 	t3 := t1.Add(45 * time.Minute)
 	t4 := t1.Add(55 * time.Minute)
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 	ba.Set(t1, t4, 1)
 
 	//w
-	bitVector := ba.Get(t2, t3, Minute)
+	bitVector := ba.Get(t2, t3, Minute5)
 
 	//t
-	if len(bitVector.Data) != 30 {
-		t.Errorf("the bitVector should have length 30")
+	if len(bitVector.Data) != 6 {
+		t.Errorf("the bitVector should have length 6, was %v", len(bitVector.Data))
 	}
 	if !bitVector.All() {
 		t.Errorf("all of the bits should be set")
@@ -182,7 +182,7 @@ func TestGetAvFromItersectSet(t *testing.T) {
 	t2 := t1.Add(15 * time.Minute)
 	t3 := t1.Add(45 * time.Minute)
 	t4 := t1.Add(55 * time.Minute)
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 	ba.Set(t2, t4, 1)
 
 	//w
@@ -193,13 +193,13 @@ func TestGetAvFromItersectSet(t *testing.T) {
 		t.Errorf("the bitVector should have length 40, was %v \n", len(bitVector.Data))
 	}
 	if bitVector.Count() != 30 {
-		t.Errorf("30 of the bits should be set \n")
+		t.Errorf("30 of the bits should be set , %d were, %v \n", bitVector.Count(), bitVector)
 	}
 }
 
 func TestSetAvTwoYearsWorkingHours(t *testing.T) {
 
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 	t1 := time.Date(1982, 2, 7, 9, 0, 0, 0, time.UTC)
 
 	for i := 0; i < 20; i++ {
@@ -207,13 +207,11 @@ func TestSetAvTwoYearsWorkingHours(t *testing.T) {
 		ba.Set(t1.Add(8*time.Hour), t1.Add(12*time.Hour), 0)
 		t1 = t1.Add(24 * time.Hour)
 	}
-	// println(len(ba.segments))
-	println("size:", ba.size(), " bytes")
 }
 
 func BenchmarkSetAvTwoYearsWorkingHours(b *testing.B) {
 
-	ba := newBitAv()
+	ba := newBitAv(Minute5)
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 	t2 := time.Date(1982, 2, 8, 0, 0, 0, 0, time.UTC)
 

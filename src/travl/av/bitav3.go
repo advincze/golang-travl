@@ -25,7 +25,7 @@ func (av *BitAv3) Set(from, to time.Time, value byte) {
 	fromUnit := timeToUnit(from, av.internalRes)
 	toUnit := timeToUnit(to, av.internalRes)
 	av.SetAv(fromUnit, toUnit, value)
-	println("size after set:", av.size())
+	//println("size after set:", av.size())
 }
 
 func (av *BitAv3) Get(from, to time.Time, res TimeResolution) *BitVector {
@@ -33,19 +33,19 @@ func (av *BitAv3) Get(from, to time.Time, res TimeResolution) *BitVector {
 	if res > av.internalRes {
 		//15min > 5min
 		// lower resolution
-		println("get w lower res")
+		// println("get w lower res")
 
 		fromUnit := timeToUnit(floorDate(from, res), av.internalRes)
-		toUnit := timeToUnit(floorDate(to, res), av.internalRes)
-		println("from", from.String(), fromUnit)
-		println("to", to.String(), toUnit)
+		toUnit := timeToUnit(ceilDate(to, res), av.internalRes)
+		// println("from", from.String(), fromUnit)
+		// println("to", to.String(), toUnit)
 		arr := av.GetAv(fromUnit, toUnit)
-		println("arr", len(arr))
+		// println("arr", len(arr))
 
 		// internal:[0,0,0,1,1,1,0,0,0]
 		// -> res:  [--0--,--1--,--0--]
 		factor := int(res / av.internalRes)
-		println("factor", factor)
+		// println("factor", factor)
 		reducedArr := reduceByFactor(arr, factor, reduceAllOne)
 		bv := &BitVector{
 			Resolution: res,
@@ -55,17 +55,29 @@ func (av *BitAv3) Get(from, to time.Time, res TimeResolution) *BitVector {
 	} else if res < av.internalRes {
 		// 1min < 5min
 		// higher resolution
-		fromUnit := timeToUnit(from, av.internalRes)
-		toUnit := timeToUnit(to, av.internalRes)
-		arr := av.GetAv(fromUnit, toUnit)
+		// println("get w higher res", from.String(), to.String())
+		fromUnitInternalRes := timeToUnit(from, av.internalRes)
+		toUnitInternalRes := timeToUnit(ceilDate(to, av.internalRes), av.internalRes)
+		// println("from, tounit ", fromUnitInternalRes, toUnitInternalRes)
+		arr := av.GetAv(fromUnitInternalRes, toUnitInternalRes)
+		// println("arr: ", printarr(arr))
 		// internal: [0        ,1          ,1        ]
 		// -> res  : [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1]
 		//  multiply by factor
 		factor := int(av.internalRes / res)
+		// println("factor: ", factor)
 		arrMultiplied := multiplyByFactor(arr, factor)
+		// println("arr2: ", printarr(arrMultiplied))
+
+		cutoff := timeToUnit(from, res) - fromUnitInternalRes*factor
+		// println("cutoff: ", cutoff)
+		origlen := timeToUnit(to, res) - timeToUnit(from, res)
+		// println("origlen: ", origlen)
+
+		arrTrimmed := arrMultiplied[cutoff : cutoff+origlen]
 		bv := &BitVector{
 			Resolution: res,
-			Data:       arrMultiplied,
+			Data:       arrTrimmed,
 			Start:      floorDate(from, av.internalRes)}
 		return bv
 		// TODO cut off excess:
@@ -73,6 +85,7 @@ func (av *BitAv3) Get(from, to time.Time, res TimeResolution) *BitVector {
 		// ->      [0,0,1,1,1,1,1,1,1,1,1]
 	} else {
 		// internal resolution
+		// println("get w internal res")
 		fromUnit := timeToUnit(from, av.internalRes)
 		toUnit := timeToUnit(to, av.internalRes)
 		arr := av.GetAv(fromUnit, toUnit)
@@ -84,11 +97,30 @@ func (av *BitAv3) Get(from, to time.Time, res TimeResolution) *BitVector {
 	}
 }
 
+func printarr(arr []byte) string {
+	var buffer bytes.Buffer
+
+	buffer.WriteString("[")
+	buffer.WriteString(strconv.Itoa(len(arr)))
+	buffer.WriteString("-")
+	for i := 0; i < len(arr); i++ {
+		if arr[i] == 1 {
+			buffer.WriteString("1, ")
+		} else {
+			buffer.WriteString("0, ")
+		}
+	}
+	buffer.WriteString("],")
+
+	return buffer.String()
+}
+
 func multiplyByFactor(data []byte, factor int) []byte {
 	length := len(data) * factor
 	var multipliedData []byte = make([]byte, length)
+	j := 0
 	for _, b := range data {
-		j := 0
+
 		for i := 0; i < factor; i++ {
 			multipliedData[j] = b
 			j++
@@ -183,6 +215,14 @@ func (av *BitAv3) getOrCreateSegment(startValue int) *Segment {
 	}
 }
 
+func (av *BitAv3) getOrEmptySegment(startValue int) *Segment {
+	if segment, ok := av.segments[startValue]; ok {
+		return segment
+	} else {
+		return NewSegment(startValue)
+	}
+}
+
 func (av *BitAv3) SetAv(from, to int, value byte) {
 	currentSegment := av.getOrCreateSegment(av.segmentStart(from))
 	for i, j := from, from%av.segmentSize; i < to; i, j = i+1, j+1 {
@@ -192,13 +232,13 @@ func (av *BitAv3) SetAv(from, to int, value byte) {
 		}
 		currentSegment.SetBit(&currentSegment.Int, j, uint(value))
 	}
-
+	//println(av.String())
 }
 
 func (av *BitAv3) GetAv(from, to int) []byte {
 	length := to - from
 	result := make([]byte, length)
-	currentSegment := av.getOrCreateSegment(av.segmentStart(from))
+	currentSegment := av.getOrEmptySegment(av.segmentStart(from))
 	for i, j := 0, from%av.segmentSize; i < length; i, j = i+1, j+1 {
 		if j == av.segmentSize {
 			currentSegment = av.getOrCreateSegment(i + from)

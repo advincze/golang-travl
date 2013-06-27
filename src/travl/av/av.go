@@ -1,7 +1,6 @@
 package av
 
 import (
-	"encoding/json"
 	"time"
 )
 
@@ -19,6 +18,13 @@ func timeToUnit(t time.Time, res TimeResolution) int {
 func floorDate(t time.Time, res TimeResolution) time.Time {
 	if tooMuch := t.Unix() % int64(res); tooMuch != 0 {
 		return t.Add(time.Duration(-1*tooMuch) * time.Second)
+	}
+	return t
+}
+
+func ceilDate(t time.Time, res TimeResolution) time.Time {
+	if tooMuch := t.Unix() % int64(res); tooMuch != 0 {
+		return t.Add(time.Duration(-1*tooMuch) * time.Second).Add(time.Duration(int(res)) * time.Second)
 	}
 	return t
 }

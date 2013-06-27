@@ -1,6 +1,7 @@
 package av
 
 import (
+	"bytes"
 	"encoding/json"
 	"time"
 )
@@ -9,6 +10,34 @@ type BitVector struct {
 	Resolution TimeResolution `json:"resolution"`
 	Start      time.Time      `json:"start"`
 	Data       []byte         `json:"data"`
+}
+
+func (b *BitVector) String() string {
+	var buffer bytes.Buffer
+
+	buffer.WriteString("BitVector{")
+	buffer.WriteRune('\n')
+	buffer.WriteString("res: ")
+	buffer.WriteString(b.Resolution.String())
+	buffer.WriteString(", ")
+	buffer.WriteRune('\n')
+	buffer.WriteString("start: ")
+	buffer.WriteString(b.Start.Format(time.RFC3339))
+	buffer.WriteString(",")
+	buffer.WriteRune('\n')
+	buffer.WriteString("data:[")
+	for i := 0; i < len(b.Data); i++ {
+		if b.Data[i] == 1 {
+			buffer.WriteString("1, ")
+		} else {
+			buffer.WriteString("0, ")
+		}
+
+	}
+	buffer.WriteString("],")
+	buffer.WriteRune('\n')
+
+	return buffer.String()
 }
 
 func (bv *BitVector) MarshalJSON() ([]byte, error) {
