@@ -56,11 +56,8 @@ func (av *BitSegmentAv) Get(from, to time.Time, res TimeResolution) *BitVector {
 		factor := int(res / av.internalRes)
 		// println("factor", factor)
 		reducedArr := reduceByFactor(arr, factor, reduceAllOne)
-		bv := &BitVector{
-			Resolution: res,
-			Data:       reducedArr,
-			Start:      floorDate(from, res)}
-		return bv
+		return NewBitVector(res, av.internalRes, reducedArr, floorDate(from, res))
+
 	} else if res < av.internalRes {
 		// 1min < 5min
 		// higher resolution
@@ -84,11 +81,7 @@ func (av *BitSegmentAv) Get(from, to time.Time, res TimeResolution) *BitVector {
 		// println("origlen: ", origlen)
 
 		arrTrimmed := arrMultiplied[cutoff : cutoff+origlen]
-		bv := &BitVector{
-			Resolution: res,
-			Data:       arrTrimmed,
-			Start:      floorDate(from, av.internalRes)}
-		return bv
+		return NewBitVector(res, av.internalRes, arrTrimmed, floorDate(from, av.internalRes))
 		// TODO cut off excess:
 		//   [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1]
 		// ->      [0,0,1,1,1,1,1,1,1,1,1]
@@ -98,11 +91,7 @@ func (av *BitSegmentAv) Get(from, to time.Time, res TimeResolution) *BitVector {
 		fromUnit := timeToUnitFloor(from, res)
 		toUnit := timeToUnitFloor(to, res)
 		arr := av.getUnitInternal(fromUnit, toUnit)
-		bv := &BitVector{
-			Resolution: res,
-			Data:       arr,
-			Start:      floorDate(from, res)}
-		return bv
+		return NewBitVector(res, av.internalRes, arr, floorDate(from, res))
 	}
 }
 

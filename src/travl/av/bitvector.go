@@ -7,9 +7,22 @@ import (
 )
 
 type BitVector struct {
-	Resolution TimeResolution `json:"resolution"`
-	Start      time.Time      `json:"start"`
-	Data       []byte         `json:"data"`
+	Resolution         TimeResolution `json:"resolution"`
+	InternalResolution TimeResolution `json:"internal_resolution"`
+	From               time.Time      `json:"from"`
+	To                 time.Time      `json:"to"`
+	Data               []byte         `json:"available"`
+}
+
+func NewBitVector(res, intRes TimeResolution, data []byte, from time.Time) *BitVector {
+	to := from.Add(time.Duration(len(data)*int(res)) * time.Second)
+	return &BitVector{
+		Resolution:         res,
+		InternalResolution: res,
+		Data:               data,
+		From:               from,
+		To:                 to,
+	}
 }
 
 func (b *BitVector) String() string {
@@ -19,8 +32,8 @@ func (b *BitVector) String() string {
 	buffer.WriteString("res: ")
 	buffer.WriteString(b.Resolution.String())
 	buffer.WriteString(", ")
-	buffer.WriteString("start: ")
-	buffer.WriteString(b.Start.Format(time.RFC3339))
+	buffer.WriteString("from: ")
+	buffer.WriteString(b.From.Format(time.RFC3339))
 	buffer.WriteString(",")
 	buffer.WriteRune('\n')
 	buffer.WriteString("data:[")
@@ -47,13 +60,17 @@ func (bv *BitVector) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Resolution string    `json:"resolution"`
-		Start      time.Time `json:"start"`
-		Data       []int     `json:"data"`
+		Resolution         string    `json:"resolution"`
+		InternalResolution string    `json:"internal_resolution"`
+		From               time.Time `json:"from"`
+		To                 time.Time `json:"to"`
+		Data               []int     `json:"available"`
 	}{
-		Resolution: bv.Resolution.String(),
-		Start:      bv.Start,
-		Data:       intdata,
+		Resolution:         bv.Resolution.String(),
+		InternalResolution: bv.InternalResolution.String(),
+		From:               bv.From,
+		To:                 bv.To,
+		Data:               intdata,
 	})
 }
 

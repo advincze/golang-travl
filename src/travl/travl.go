@@ -22,114 +22,67 @@ func main() {
 
 func createRouter() http.Handler {
 	r := mux.NewRouter()
-	r.HandleFunc("/{type}", createObject).Methods("POST")
-	r.HandleFunc("/{type}/{id}", deleteObject).Methods("DELETE")
-	r.HandleFunc("/{type}/{id}/_av", defineAvailability).Methods("PUT")
-	r.HandleFunc("/{type}/{id}/_av", retrieveAvailability).Methods("GET")
-	r.HandleFunc("/{type}/{id}/_ev", addEvent).Methods("PUT")
-	r.HandleFunc("/{type}", infoHandler).Methods("GET")
+	r.HandleFunc("/{id}/_av", defineAv).Methods("PUT")
+	r.HandleFunc("/{id}/_av", retrieveAv).Methods("GET").Queries("from", "", "to", "", "resolution", "")
+	r.HandleFunc("/{id}/_ev", addEvent).Methods("PUT")
+	r.HandleFunc("/{id}", deleteAv).Methods("DELETE")
 	return r
 }
 
-func infoHandler(w http.ResponseWriter, r *http.Request) {
-	// t := mux.Vars(r)["type"]
-
-	fmt.Fprintf(w, "info")
-
+func deleteAv(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	av.DeleteBitAv(id)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "")
 }
 
-func createObject(w http.ResponseWriter, r *http.Request) {
-	// println("createobj")
-	t := mux.Vars(r)["type"]
-	ot := av.GetObjectType(t)
-	body, _ := ioutil.ReadAll(r.Body)
-	if len(body) != 0 {
-		type Message struct {
-			Id         string `json:"id"`
-			Resolution string `json:"resolution"`
-		}
+func defineAv(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	bitav := av.FindOrNewBitAv(id)
 
-		var v *Message
-		err := json.Unmarshal(body, &v)
-		if err != nil {
-			http.Error(w, "could not parse json document", http.StatusInternalServerError)
-		}
-
-		ob := ot.GetObject(v.Id)
-		bytes, _ := json.Marshal(ob)
-		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(w, "%s", bytes)
-
-	} else {
-		ob := ot.CreateObject()
-		bytes, _ := json.Marshal(ob)
-		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(w, "%s", bytes)
+	var msg *struct {
+		From     time.Time     `json:"from"`
+		To       time.Time     `json:"to"`
+		Duration time.Duration `json:"duration"`
+		Value    byte          `json:"value"`
 	}
-}
 
-func deleteObject(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	t := vars["type"]
-	id := vars["id"]
-	_, ob := av.GetObjectTypeAndObject(t, id)
-	fmt.Fprintf(w, "delete res , type: %v, id: %v , ob: %v \n", t, id, ob)
+	err := parseBodyJSON(r, &msg)
+	if err != nil {
+		panic(err)
+		http.Error(w, "could not parse json document", http.StatusInternalServerError)
+		return
+	}
 
-}
-
-func defineAvailability(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	t := vars["type"]
-	id := vars["id"]
-	_, ob := av.GetObjectTypeAndObject(t, id)
-	// println(ob)
-	body, _ := ioutil.ReadAll(r.Body)
-	if len(body) != 0 {
-		type Message struct {
-			From  time.Time `json:"from"`
-			To    time.Time `json:"to"`
-			Value byte      `json:"value"`
-		}
-
-		var m *Message
-		err := json.Unmarshal(body, &m)
-		if err != nil {
-			http.Error(w, "could not parse json document", http.StatusInternalServerError)
-		}
-		// println("defineAvailability ob", ob)
-		ob.Ba.Set(m.From, m.To, m.Value)
-
-		//fmt.Fprintf(w, "defineAvailability, type: %v , id: %v , %v, %v n", t, id, ob, m)
-		bb, _ := json.Marshal(struct {
-			Success   bool   `json:"success"`
-			Operation string `json:"operation"`
-		}{
-			Success:   true,
-			Operation: "define Availability",
-		})
+	if msg != nil {
+		bitav.Set(msg.From, msg.To, msg.Value)
+		bb, _ := json.Marshal(msg)
+		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, string(bb))
 	}
 }
 
-func retrieveAvailability(w http.ResponseWriter, r *http.Request) {
+func retrieveAv(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	from, _ := ParseTimeWithMultipleLayouts(q.Get("from"))
-	to, _ := ParseTimeWithMultipleLayouts(q.Get("to"))
+	from, _ := parseTime(q.Get("from"))
+	to, _ := parseTime(q.Get("to"))
 	res := av.ParseTimeResolution(q.Get("resolution"))
 
-	vars := mux.Vars(r)
-	t := vars["type"]
-	id := vars["id"]
+	id := mux.Vars(r)["id"]
 
-	_, ob := av.GetObjectTypeAndObject(t, id)
-	bv := ob.Ba.Get(from, to, res)
-	// fmt.Println("travl rA", ob.Ba)
+	bitav := av.FindOrNewBitAv(id)
+	bv := bitav.Get(from, to, res)
+
 	bb, _ := json.Marshal(bv)
 	fmt.Fprint(w, string(bb))
-	//fmt.Fprintf(w, "retrieveAvailability, %s, %v, %v, %s, %s, %v \n", res, from, to, t, id, bv)
 }
 
-func ParseTimeWithMultipleLayouts(s string, layouts ...string) (time.Time, error) {
+func addEvent(w http.ResponseWriter, r *http.Request) {
+	//TODO implement
+	fmt.Fprintf(w, "addEvent\n")
+}
+
+func parseTime(s string, layouts ...string) (time.Time, error) {
 	if len(layouts) == 0 {
 		layouts = []string{time.RFC3339, "2006-01-02T15:04", "2006-01-02 15:04", "2006-01-02"}
 	}
@@ -142,6 +95,10 @@ func ParseTimeWithMultipleLayouts(s string, layouts ...string) (time.Time, error
 	return time.Now(), errors.New("wrong time format")
 }
 
-func addEvent(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "addEvent\n")
+func parseBodyJSON(r *http.Request, data interface{}) error {
+	body, _ := ioutil.ReadAll(r.Body)
+	if len(body) != 0 {
+		return json.Unmarshal(body, &data)
+	}
+	return nil
 }

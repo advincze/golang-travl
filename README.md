@@ -12,7 +12,7 @@ travl
 	
 	// get dependencies
 	% go get "github.com/gorilla/mux"
-	% go get "github.com/willf/bitset"
+	% go get "launchpad.net/gocheck"
 	
 	// build
 	% go install ./...
@@ -29,60 +29,53 @@ travl
 
 **use**:
 
-*create*
-
-	% curl -X POST localhost:1982/obj -d '{
-		"id"		 : "8",
-		"resolution" : "1min"
-	}'
-	201 CREATED { "id":"8" }
-	
-	% curl -X POST localhost:1982/obj 
-	201 CREATED { "id":"1" }
 
 *delete*
 
-	% curl -X DELETE localhost:1982/obj/8
+	% curl -X DELETE localhost:1982/bob
 	200 OK
 		
 *define*
 
-	% curl -X PUT localhost:1982/obj/8/_av -d '{
-		 "from" 	: "2013-05-05T00:00:00",
-		 "to" 		: "2013-06-05T00:00:00",
+	% curl -X PUT localhost:1982/bob/_av -d '{
+		 "from" 	: "2013-05-05T00:00:00Z",
+		 "to" 		: "2013-06-05T00:00:00Z",
 		 "value"	: 1
 	}'
 	
-	% curl -X PUT localhost:1982/obj/8/_av -d '{
-		 "from" 	: "2013-05-05T00:00:00",
-		 "duration" : "7d",
-		 "value"	: 1
+	% curl -X PUT localhost:1982/bob/_av -d '{
+		 "from" 	: "2013-05-07T00:00:00Z",
+		 "to" 		: "2013-05-09T00:00:00Z",
+		 "value"	: 0
 	}'
 	
-*add*
 
-	% curl -X PUT localhost:1982/obj/8/_ev -d '{
+
+*add* //TODO
+
+	% curl -X PUT localhost:1982/bob/_ev -d '{
 		 "id" 		: "17",
 		 "from" 	: "2013-05-07T18:00:00",
 		 "duration" : "2h"
 	}'
 	
+
+	
 *retrieve*
 	
-	% curl 'localhost:1982/obj/13/_av?at=2013-05-05'
+	% curl 'localhost:1982/bob/_av?at=2013-05-05'
 	{
 		"at" 		: "2013-05-05T00:00:00",
 		internal_resolution: "1min",
 		defined:	: true
 		available:	: true
 	}
-
-	% curl 'localhost:1982/obj/13/_av?from=2013-05-05&to=2013-05-06&resolution=hour'
+	
+	% curl 'localhost:1982/bob/_av?from=2013-05-05&to=2013-05-06&resolution=hour'
 	{
 		"from" 		: "2013-05-05T00:00:00",
 		"to" 		: "2013-05-06T00:00:00",
 		resolution	: "hour",
 		internal_resolution: "1min",
-		defined:	: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 		available:	: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 	}
