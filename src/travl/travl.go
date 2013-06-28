@@ -15,13 +15,9 @@ import (
 var port = flag.String("port", ":1982", "http port")
 
 func main() {
-
 	flag.Parse()
-
 	http.Handle("/", createRouter())
-
 	http.ListenAndServe(*port, nil)
-
 }
 
 func createRouter() http.Handler {
@@ -36,11 +32,14 @@ func createRouter() http.Handler {
 }
 
 func infoHandler(w http.ResponseWriter, r *http.Request) {
+	// t := mux.Vars(r)["type"]
+
 	fmt.Fprintf(w, "info")
+
 }
 
 func createObject(w http.ResponseWriter, r *http.Request) {
-	println("createobj")
+	// println("createobj")
 	t := mux.Vars(r)["type"]
 	ot := av.GetObjectType(t)
 	body, _ := ioutil.ReadAll(r.Body)
@@ -83,7 +82,7 @@ func defineAvailability(w http.ResponseWriter, r *http.Request) {
 	t := vars["type"]
 	id := vars["id"]
 	_, ob := av.GetObjectTypeAndObject(t, id)
-	println(ob)
+	// println(ob)
 	body, _ := ioutil.ReadAll(r.Body)
 	if len(body) != 0 {
 		type Message struct {
@@ -97,7 +96,7 @@ func defineAvailability(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, "could not parse json document", http.StatusInternalServerError)
 		}
-		println("defineAvailability ob", ob)
+		// println("defineAvailability ob", ob)
 		ob.Ba.Set(m.From, m.To, m.Value)
 
 		//fmt.Fprintf(w, "defineAvailability, type: %v , id: %v , %v, %v n", t, id, ob, m)
@@ -114,17 +113,17 @@ func defineAvailability(w http.ResponseWriter, r *http.Request) {
 
 func retrieveAvailability(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	from, _ := ParseTimeWithMultipleLayouts(q.Get("from"), time.RFC3339, "2006-01-02T15:04", "2006-01-02 15:04", "2006-01-02")
-	to, _ := ParseTimeWithMultipleLayouts(q.Get("to"), time.RFC3339, "2006-01-02T15:04", "2006-01-02 15:04", "2006-01-02")
-	resolutionStr := q.Get("resolution")
-	res := av.ParseTimeResolution(resolutionStr)
+	from, _ := ParseTimeWithMultipleLayouts(q.Get("from"))
+	to, _ := ParseTimeWithMultipleLayouts(q.Get("to"))
+	res := av.ParseTimeResolution(q.Get("resolution"))
 
 	vars := mux.Vars(r)
 	t := vars["type"]
 	id := vars["id"]
+
 	_, ob := av.GetObjectTypeAndObject(t, id)
 	bv := ob.Ba.Get(from, to, res)
-	fmt.Println("travl rA", ob.Ba)
+	// fmt.Println("travl rA", ob.Ba)
 	bb, _ := json.Marshal(bv)
 	fmt.Fprint(w, string(bb))
 	//fmt.Fprintf(w, "retrieveAvailability, %s, %v, %v, %s, %s, %v \n", res, from, to, t, id, bv)
