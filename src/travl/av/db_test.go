@@ -52,6 +52,26 @@ func TestWriteObjectIntoDB(t *testing.T) {
 	}
 }
 
+func TestWriteObjectIntoInMemoryDB(t *testing.T) {
+
+	db := NewInMemoryDB()
+
+	obj := &object{ID: "myID", TypeID: "myTypeID"}
+	db.writeObject(obj)
+
+	obj2 := db.getObject("myID")
+
+	db.CloseDB()
+
+	if obj.ID != obj2.ID {
+		t.Errorf("the written and retrieved object should be equal, were %s, %s", obj.ID, obj2.ID)
+	}
+
+	if obj.TypeID != obj2.TypeID {
+		t.Errorf("the written and retrieved object should be equal, were %s, %s", obj.TypeID, obj2.TypeID)
+	}
+}
+
 func TestGob(t *testing.T) {
 	type Message struct {
 		ID   string

@@ -13,6 +13,15 @@ type DB struct {
 	objects *gkvlite.Collection
 }
 
+func NewInMemoryDB() *DB {
+	store, _ := gkvlite.NewStore(nil)
+	objects := store.SetCollection("objects", nil)
+	return &DB{
+		store:   store,
+		objects: objects,
+	}
+}
+
 func NewDB(fname string) *DB {
 	f, err := os.OpenFile(fname, os.O_SYNC, 0666)
 	if err != nil {

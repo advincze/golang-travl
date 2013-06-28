@@ -11,7 +11,7 @@ import (
 	"travl/av"
 )
 
-var species = flag.String("species", "gopher", "the species we are studying")
+var port = flag.String("port", ":1982", "http port")
 
 func main() {
 
@@ -19,7 +19,7 @@ func main() {
 
 	http.Handle("/", createRouter())
 
-	http.ListenAndServe(":1982", nil)
+	http.ListenAndServe(port, nil)
 
 }
 
