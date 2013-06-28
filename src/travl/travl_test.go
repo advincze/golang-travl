@@ -52,7 +52,7 @@ func TestShouldCreateObjectWithID(t *testing.T) {
 		t.Errorf("statuscode should be 'Created', was %v\n", res.StatusCode)
 	}
 	if response.Id != "8" {
-		t.Errorf("id of 'Created', should be 8, was %v\n", response.Id)
+		t.Errorf("id of 'Created', should be 8, was %v\n", response)
 	}
 }
 

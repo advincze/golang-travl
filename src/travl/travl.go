@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -19,7 +20,7 @@ func main() {
 
 	http.Handle("/", createRouter())
 
-	http.ListenAndServe(port, nil)
+	http.ListenAndServe(*port, nil)
 
 }
 
@@ -39,7 +40,7 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func createObject(w http.ResponseWriter, r *http.Request) {
-
+	println("createobj")
 	t := mux.Vars(r)["type"]
 	ot := av.GetObjectType(t)
 	body, _ := ioutil.ReadAll(r.Body)
@@ -61,7 +62,7 @@ func createObject(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%s", bytes)
 
 	} else {
-		ob := ot.NewObject()
+		ob := ot.CreateObject()
 		bytes, _ := json.Marshal(ob)
 		w.WriteHeader(http.StatusCreated)
 		fmt.Fprintf(w, "%s", bytes)
@@ -82,6 +83,7 @@ func defineAvailability(w http.ResponseWriter, r *http.Request) {
 	t := vars["type"]
 	id := vars["id"]
 	_, ob := av.GetObjectTypeAndObject(t, id)
+	println(ob)
 	body, _ := ioutil.ReadAll(r.Body)
 	if len(body) != 0 {
 		type Message struct {
@@ -95,7 +97,7 @@ func defineAvailability(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, "could not parse json document", http.StatusInternalServerError)
 		}
-
+		println("defineAvailability ob", ob)
 		ob.Ba.Set(m.From, m.To, m.Value)
 
 		//fmt.Fprintf(w, "defineAvailability, type: %v , id: %v , %v, %v n", t, id, ob, m)
@@ -128,14 +130,17 @@ func retrieveAvailability(w http.ResponseWriter, r *http.Request) {
 	//fmt.Fprintf(w, "retrieveAvailability, %s, %v, %v, %s, %s, %v \n", res, from, to, t, id, bv)
 }
 
-func ParseTimeWithMultipleLayouts(s string, layouts ...string) (time.Time, bool) {
+func ParseTimeWithMultipleLayouts(s string, layouts ...string) (time.Time, error) {
+	if len(layouts) == 0 {
+		layouts = []string{time.RFC3339, "2006-01-02T15:04", "2006-01-02 15:04", "2006-01-02"}
+	}
 	for _, layout := range layouts {
 		t, err := time.Parse(layout, s)
 		if err == nil {
-			return t, true
+			return t, nil
 		}
 	}
-	return time.Now(), false
+	return time.Now(), errors.New("wrong time format")
 }
 
 func addEvent(w http.ResponseWriter, r *http.Request) {

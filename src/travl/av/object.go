@@ -46,7 +46,7 @@ func (ot *objectType) CreateObject() *object {
 func (ot *objectType) GetObject(id string) *object {
 	ob, ok := ot.Objects[id]
 	if !ok {
-		ob := ot.newObject(id, Minute5)
+		ob = ot.newObject(id, Minute5)
 		ot.Objects[id] = ob
 	}
 	return ob
@@ -55,5 +55,6 @@ func (ot *objectType) GetObject(id string) *object {
 func GetObjectTypeAndObject(name, id string) (*objectType, *object) {
 	ot := GetObjectType(name)
 	ob := ot.GetObject(id)
+	// println("GetObjectTypeAndObject", ot, len(ot.Objects), ot.Objects["8"], ob)
 	return ot, ob
 }
