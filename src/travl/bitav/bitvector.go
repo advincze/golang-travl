@@ -1,20 +1,21 @@
-package av
+package bitav
 
 import (
 	"bytes"
 	"encoding/json"
 	"time"
+	"travl/av"
 )
 
 type BitVector struct {
-	Resolution         TimeResolution `json:"resolution"`
-	InternalResolution TimeResolution `json:"internal_resolution"`
-	From               time.Time      `json:"from"`
-	To                 time.Time      `json:"to"`
-	Data               []byte         `json:"available"`
+	Resolution         av.TimeResolution `json:"resolution"`
+	InternalResolution av.TimeResolution `json:"internal_resolution"`
+	From               time.Time         `json:"from"`
+	To                 time.Time         `json:"to"`
+	Data               []byte            `json:"available"`
 }
 
-func NewBitVector(res, intRes TimeResolution, data []byte, from time.Time) *BitVector {
+func NewBitVector(res, intRes av.TimeResolution, data []byte, from time.Time) *BitVector {
 	to := from.Add(time.Duration(len(data)*int(res)) * time.Second)
 	return &BitVector{
 		Resolution:         res,

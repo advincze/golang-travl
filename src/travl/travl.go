@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 	"travl/av"
+	"travl/bitav"
 )
 
 var port = flag.String("port", ":1982", "http port")
@@ -31,14 +32,14 @@ func createRouter() http.Handler {
 
 func deleteAv(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	av.DeleteBitAv(id)
+	bitav.DeleteBitAv(id)
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "")
 }
 
 func defineAv(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	bitav := av.FindOrNewBitAv(id)
+	bav := bitav.FindOrNewBitAv(id)
 
 	var msg *struct {
 		From     time.Time     `json:"from"`
@@ -55,7 +56,7 @@ func defineAv(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if msg != nil {
-		bitav.Set(msg.From, msg.To, msg.Value)
+		bav.Set(msg.From, msg.To, msg.Value)
 		bb, _ := json.Marshal(msg)
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, string(bb))
@@ -70,8 +71,8 @@ func retrieveAv(w http.ResponseWriter, r *http.Request) {
 
 	id := mux.Vars(r)["id"]
 
-	bitav := av.FindOrNewBitAv(id)
-	bv := bitav.Get(from, to, res)
+	bav := bitav.FindOrNewBitAv(id)
+	bv := bav.Get(from, to, res)
 
 	bb, _ := json.Marshal(bv)
 	fmt.Fprint(w, string(bb))
