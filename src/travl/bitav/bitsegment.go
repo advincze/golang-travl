@@ -2,6 +2,8 @@ package bitav
 
 import (
 	"bytes"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"math/big"
 	"strconv"
 )
@@ -31,8 +33,29 @@ func NewBitSegment(id string, start int) *BitSegment {
 }
 
 var bitAvSegments map[string]map[int]*BitSegment
+var session *mgo.Session
 
 func (s *BitSegment) Save() {
+	var err error
+	if session == nil {
+		session, err = mgo.Dial("localhost")
+		if err != nil {
+			panic(err)
+		}
+		session.SetMode(mgo.Monotonic, true)
+	}
+
+	//defer session.Close()
+
+	c := session.DB("test").C("bitsegments")
+	_, err = c.Upsert(
+		bson.M{"id": s.ID, "start": s.start},
+		bson.M{"id": s.ID, "start": s.start, "data": s.Bytes()},
+	)
+	if err != nil {
+		panic(err)
+	}
+
 	if bitAvSegments == nil {
 		bitAvSegments = make(map[string]map[int]*BitSegment)
 	}
