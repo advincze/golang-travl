@@ -10,14 +10,12 @@ import (
 type BitSegmentAv struct {
 	ID          string
 	internalRes av.TimeResolution
-	// segments    map[int]*BitSegment
 	segmentSize int
 }
 
 func NewBitSegmentAv(ID string, res av.TimeResolution) *BitSegmentAv {
 	return &BitSegmentAv{
-		ID: ID,
-		// segments:    make(map[int]*BitSegment),
+		ID:          ID,
 		internalRes: res,
 		segmentSize: int(av.Day / res),
 	}
@@ -145,7 +143,6 @@ func reduceMajority(data []byte) byte {
 func (ba *BitSegmentAv) SetAt(at time.Time, value byte) {
 	atUnit := av.TimeToUnitFloor(at, ba.internalRes)
 	ba.setUnitInternal(atUnit, atUnit+1, value)
-	// println("SetAt", ba, ba.String())
 }
 
 func (ba *BitSegmentAv) GetAt(at time.Time) byte {
@@ -158,7 +155,6 @@ func (ba *BitSegmentAv) String() string {
 	var buffer bytes.Buffer
 
 	segments := FindAllSegments(ba.ID)
-	// println("BAString, found", len(segments))
 	for _, segment := range segments {
 		buffer.WriteString(strconv.Itoa(segment.start))
 		buffer.WriteString("->")
@@ -171,13 +167,6 @@ func (ba *BitSegmentAv) String() string {
 
 func (ba *BitSegmentAv) segmentStart(i int) int {
 	return i - i%ba.segmentSize
-}
-
-func (ba *BitSegmentAv) getOrCreateBitSegment(startValue int) *BitSegment {
-	if segment := FindBitSegment(ba.ID, startValue); segment != nil {
-		return segment
-	}
-	return NewBitSegment(ba.ID, startValue)
 }
 
 func (ba *BitSegmentAv) getOrEmptyBitSegment(startValue int) *BitSegment {

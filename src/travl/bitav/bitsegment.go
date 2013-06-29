@@ -33,7 +33,6 @@ func NewBitSegment(id string, start int) *BitSegment {
 var bitAvSegments map[string]map[int]*BitSegment
 
 func (s *BitSegment) Save() {
-	// println("bs Save")
 	if bitAvSegments == nil {
 		bitAvSegments = make(map[string]map[int]*BitSegment)
 	}
