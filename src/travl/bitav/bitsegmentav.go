@@ -10,14 +10,14 @@ import (
 type BitSegmentAv struct {
 	ID          string
 	internalRes av.TimeResolution
-	segments    map[int]*BitSegment
+	// segments    map[int]*BitSegment
 	segmentSize int
 }
 
 func NewBitSegmentAv(ID string, res av.TimeResolution) *BitSegmentAv {
 	return &BitSegmentAv{
-		ID:          ID,
-		segments:    make(map[int]*BitSegment),
+		ID: ID,
+		// segments:    make(map[int]*BitSegment),
 		internalRes: res,
 		segmentSize: int(av.Day / res),
 	}
@@ -25,7 +25,8 @@ func NewBitSegmentAv(ID string, res av.TimeResolution) *BitSegmentAv {
 
 func (ba *BitSegmentAv) size() int {
 	var size int
-	for _, segment := range ba.segments {
+	segments := FindAllSegments(ba.ID)
+	for _, segment := range segments {
 		size += len(segment.Bytes())
 	}
 	return size
@@ -144,6 +145,7 @@ func reduceMajority(data []byte) byte {
 func (ba *BitSegmentAv) SetAt(at time.Time, value byte) {
 	atUnit := av.TimeToUnitFloor(at, ba.internalRes)
 	ba.setUnitInternal(atUnit, atUnit+1, value)
+	// println("SetAt", ba, ba.String())
 }
 
 func (ba *BitSegmentAv) GetAt(at time.Time) byte {
@@ -155,7 +157,9 @@ func (ba *BitSegmentAv) GetAt(at time.Time) byte {
 func (ba *BitSegmentAv) String() string {
 	var buffer bytes.Buffer
 
-	for _, segment := range ba.segments {
+	segments := FindAllSegments(ba.ID)
+	// println("BAString, found", len(segments))
+	for _, segment := range segments {
 		buffer.WriteString(strconv.Itoa(segment.start))
 		buffer.WriteString("->")
 		buffer.WriteString(segment.String())
@@ -170,32 +174,30 @@ func (ba *BitSegmentAv) segmentStart(i int) int {
 }
 
 func (ba *BitSegmentAv) getOrCreateBitSegment(startValue int) *BitSegment {
-	if segment, ok := ba.segments[startValue]; ok {
-		return segment
-	} else {
-		segment = NewBitSegment(startValue)
-		ba.segments[startValue] = segment
+	if segment := FindBitSegment(ba.ID, startValue); segment != nil {
 		return segment
 	}
+	return NewBitSegment(ba.ID, startValue)
 }
 
 func (ba *BitSegmentAv) getOrEmptyBitSegment(startValue int) *BitSegment {
-	if segment, ok := ba.segments[startValue]; ok {
+	if segment := FindBitSegment(ba.ID, startValue); segment != nil {
 		return segment
-	} else {
-		return NewBitSegment(startValue)
 	}
+	return NewBitSegment(ba.ID, startValue)
 }
 
 func (ba *BitSegmentAv) setUnitInternal(from, to int, value byte) {
-	currentBitSegment := ba.getOrCreateBitSegment(ba.segmentStart(from))
+	currentBitSegment := ba.getOrEmptyBitSegment(ba.segmentStart(from))
 	for i, j := from, from%ba.segmentSize; i < to; i, j = i+1, j+1 {
 		if j == ba.segmentSize {
-			currentBitSegment = ba.getOrCreateBitSegment(i)
+			currentBitSegment.Save()
+			currentBitSegment = ba.getOrEmptyBitSegment(i)
 			j = 0
 		}
 		currentBitSegment.SetBit(&currentBitSegment.Int, j, uint(value))
 	}
+	currentBitSegment.Save()
 }
 
 func (ba *BitSegmentAv) getUnitInternal(from, to int) []byte {

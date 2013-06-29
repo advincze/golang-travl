@@ -8,6 +8,8 @@ import (
 )
 
 func newBitAv(res av.TimeResolution) BitAv {
+	//clear the DB
+	bitAvSegments = nil
 	return NewBitSegmentAv("testID", res)
 }
 
