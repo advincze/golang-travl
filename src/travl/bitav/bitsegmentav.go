@@ -17,6 +17,8 @@ type BitSegmentAv struct {
 func NewBitSegmentAv(ID string, res av.TimeResolution, persistor string) *BitSegmentAv {
 	var bsp BitSegmentPersistor
 	switch persistor {
+	case "mgo":
+		bsp = new(BitSegmentMgoPersistor)
 	default:
 		bsp = new(BitSegmentMemPersistor)
 	}

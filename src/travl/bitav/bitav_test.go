@@ -9,7 +9,7 @@ import (
 
 func newBitAv(res av.TimeResolution) BitAv {
 	//clear the DB
-	return NewBitSegmentAv("testID", res, "mem")
+	return NewBitSegmentAv("testID", res, "mgo")
 }
 
 func TestNewBitAvShouldNotBeNil(t *testing.T) {

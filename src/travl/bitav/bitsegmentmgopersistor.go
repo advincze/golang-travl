@@ -33,10 +33,10 @@ func (bsp *BitSegmentMgoPersistor) Save(s *BitSegment) {
 	}
 }
 
-func (bsp *BitSegmentMgoPersistor) FindBitSegment(id string, start int) *BitSegment {
+func (bsp *BitSegmentMgoPersistor) Find(id string, start int) *BitSegment {
 	return nil
 }
 
-func (bsp *BitSegmentMgoPersistor) FindAllSegments(id string) map[int]*BitSegment {
+func (bsp *BitSegmentMgoPersistor) FindAll(id string) map[int]*BitSegment {
 	return nil
 }
