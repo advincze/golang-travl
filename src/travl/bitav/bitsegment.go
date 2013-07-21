@@ -2,8 +2,6 @@ package bitav
 
 import (
 	"bytes"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"math/big"
 	"strconv"
 )
@@ -12,6 +10,12 @@ type BitSegment struct {
 	big.Int
 	start int
 	ID    string
+}
+
+type BitSegmentPersistor interface {
+	Save(s *BitSegment)
+	Find(id string, start int) *BitSegment
+	FindAll(id string) map[int]*BitSegment
 }
 
 func (s *BitSegment) String() string {
@@ -32,56 +36,37 @@ func NewBitSegment(id string, start int) *BitSegment {
 	}
 }
 
-var bitAvSegments map[string]map[int]*BitSegment
-var session *mgo.Session
+type BitSegmentMemPersistor struct {
+	bitAvSegments map[string]map[int]*BitSegment
+}
 
-func (s *BitSegment) Save() {
-	var err error
-	if session == nil {
-		session, err = mgo.Dial("localhost")
-		if err != nil {
-			panic(err)
-		}
-		session.SetMode(mgo.Monotonic, true)
+func (bsmp *BitSegmentMemPersistor) Save(s *BitSegment) {
+	if bsmp.bitAvSegments == nil {
+		bsmp.bitAvSegments = make(map[string]map[int]*BitSegment)
 	}
-
-	//defer session.Close()
-
-	c := session.DB("test").C("bitsegments")
-	_, err = c.Upsert(
-		bson.M{"id": s.ID, "start": s.start},
-		bson.M{"id": s.ID, "start": s.start, "data": s.Bytes()},
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	if bitAvSegments == nil {
-		bitAvSegments = make(map[string]map[int]*BitSegment)
-	}
-	segments, ok := bitAvSegments[s.ID]
+	segments, ok := bsmp.bitAvSegments[s.ID]
 	if !ok {
 		segments = make(map[int]*BitSegment)
-		bitAvSegments[s.ID] = segments
+		bsmp.bitAvSegments[s.ID] = segments
 	}
 	segments[s.start] = s
 
 }
 
-func FindBitSegment(id string, start int) *BitSegment {
-	if bitAvSegments == nil {
+func (bsmp *BitSegmentMemPersistor) Find(id string, start int) *BitSegment {
+	if bsmp.bitAvSegments == nil {
 		return nil
 	}
-	segments, ok := bitAvSegments[id]
+	segments, ok := bsmp.bitAvSegments[id]
 	if !ok {
 		return nil
 	}
 	return segments[start]
 }
 
-func FindAllSegments(id string) map[int]*BitSegment {
-	if bitAvSegments == nil {
+func (bsmp *BitSegmentMemPersistor) FindAll(id string) map[int]*BitSegment {
+	if bsmp.bitAvSegments == nil {
 		return nil
 	}
-	return bitAvSegments[id]
+	return bsmp.bitAvSegments[id]
 }

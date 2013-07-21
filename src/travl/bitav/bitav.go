@@ -15,7 +15,7 @@ type BitAv interface {
 var bitavs map[string]BitAv = make(map[string]BitAv)
 
 func NewBitAv(id string) BitAv {
-	bitav := NewBitSegmentAv(id, av.Minute5)
+	bitav := NewBitSegmentAv(id, av.Minute5, "mem")
 	bitavs[id] = bitav
 	return bitav
 }
