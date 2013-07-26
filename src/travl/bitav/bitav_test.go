@@ -2,388 +2,178 @@ package bitav
 
 import (
 	"bytes"
+	. "launchpad.net/gocheck"
 	"testing"
 	"time"
 	"travl/av"
 )
 
-func newBitAv(res av.TimeResolution) BitAv {
-	//clear the DB
-	return NewBitSegmentAv("testID", res, "mgo")
+// Hook up gocheck into the "go test" runner.
+func Test(t *testing.T) { TestingT(t) }
+
+type BitAvSuite struct {
+	ba BitAv
+	t1 time.Time
 }
 
-func TestNewBitAvShouldNotBeNil(t *testing.T) {
-	ba := newBitAv(av.Minute5)
+var _ = Suite(&BitAvSuite{})
 
-	if ba == nil {
-		t.Errorf("BitAv should not be nil")
-	}
+func (s *BitAvSuite) SetUpTest(c *C) {
+	s.ba = NewSegmentBitAv("testID", av.Minute5, "mem")
+	s.t1 = time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 }
 
-func TestSetAvAtShouldNotPanic(t *testing.T) {
-	ba := newBitAv(av.Minute5)
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-
-	defer func() {
-		if r := recover(); r != nil {
-			t.Error("SetAv should not have caused a panic")
-		}
-	}()
-
-	ba.SetAt(t1, 1)
+func (s *BitAvSuite) TearDownTest(c *C) {
+	s.ba = nil
 }
 
-func TestGetAvAtEmpty(t *testing.T) {
-	// |0...000000000000000000000...000|
-	//          |get
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	ba := newBitAv(av.Minute5)
-
-	//t
-	if ba.GetAt(t1) == 1 {
-		t.Errorf("the bit should not be set")
-	}
+func (s *BitAvSuite) TestNewBitAvShouldNotBeNil(c *C) {
+	c.Assert(s.ba, NotNil)
 }
 
-func TestGetAvAtSet(t *testing.T) {
-	// |0...0001111111111111111100000...000|
-	//          |-get
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	ba := newBitAv(av.Minute5)
-	ba.SetAt(t1, 1)
-
-	//w
-	res := ba.GetAt(t1)
-
-	//t
-	if res == 0 {
-		t.Errorf("the bit should be set")
-	}
+func (s *BitAvSuite) TestGetAvAtEmpty(c *C) {
+	c.Assert(s.ba.GetAt(s.t1), Equals, byte(0))
 }
 
-func TestGetAvAtUnset(t *testing.T) {
-	// |0...0001111111111111111100000...000|
-	//          |-get
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	ba := newBitAv(av.Minute5)
-	ba.SetAt(t1, 0)
-
-	//w
-	res := ba.GetAt(t1)
-
-	//t
-	if res != 0 {
-		t.Errorf("the bit should be unset")
-	}
+func (s *BitAvSuite) TestGetAvAtSet(c *C) {
+	s.ba.SetAt(s.t1, 1)
+	c.Assert(s.ba.GetAt(s.t1), Equals, byte(1))
 }
 
-func TestSetAvFromToShouldNotPanic(t *testing.T) {
-	ba := newBitAv(av.Minute5)
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	t2 := t1.Add(24 * time.Hour)
-
-	defer func() {
-		if r := recover(); r != nil {
-			t.Error("SetAv should not have caused a panic")
-		}
-	}()
-
-	ba.Set(t1, t2, 1)
+func (s *BitAvSuite) TestGetAvAtUnset(c *C) {
+	s.ba.SetAt(s.t1, 0)
+	c.Assert(s.ba.GetAt(s.t1), Equals, byte(0))
 }
 
-func TestGetAvNothingFromEmpty(t *testing.T) {
-	// |000000...000000000000|
-	//       || get
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	ba := newBitAv(av.Minute5)
-
-	bitVector := ba.Get(t1, t1, av.Minute5)
-
-	if bitVector == nil {
-		t.Errorf("the bitVector should not be nil")
-	}
-	if len(bitVector.Data) != 0 {
-		t.Errorf("the bitVector should have length zero")
-	}
-
+func (s *BitAvSuite) TestGetAvNothingFromEmpty(c *C) {
+	bitVector := s.ba.Get(s.t1, s.t1, av.Minute5)
+	c.Check(bitVector, NotNil)
+	c.Check(len(bitVector.Data), Equals, 0)
 }
 
-func TestGetAvFromEmpty(t *testing.T) {
-	// |000000...000000000000|
-	//       |---get---|
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	t2 := t1.Add(25 * time.Minute)
-	ba := newBitAv(av.Minute5)
-
-	//w
-	bitVector := ba.Get(t1, t2, av.Minute5)
-
-	//t
-	if len(bitVector.Data) != 5 {
-		t.Errorf("the bitVector should have length 5, was %d ", len(bitVector.Data))
-	}
-	if bitVector.Any() {
-		t.Errorf("none of the bits should be set")
-	}
+func (s *BitAvSuite) TestGetAvFromEmpty(c *C) {
+	bitVector := s.ba.Get(s.t1, s.t1.Add(25*time.Minute), av.Minute5)
+	c.Check(len(bitVector.Data), Equals, 5)
+	c.Assert(bitVector.Any(), Equals, false)
 }
 
-func TestGetAvFromBeforeSet(t *testing.T) {
-	// |000000...000000000011001....01100000|
-	//     |---get---|
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	t2 := t1.Add(25 * time.Minute)
-	t3 := t1.Add(45 * time.Minute)
-	t4 := t1.Add(75 * time.Minute)
-	ba := newBitAv(av.Minute5)
-	ba.Set(t3, t4, 1)
+func (s *BitAvSuite) TestGetAvFromBeforeSet(c *C) {
+	s.ba.Set(s.t1.Add(45*time.Minute), s.t1.Add(75*time.Minute), 1)
 
-	//w
-	bitVector := ba.Get(t1, t2, av.Minute5)
+	bitVector := s.ba.Get(s.t1, s.t1.Add(25*time.Minute), av.Minute5)
 
-	//t
-	if l := len(bitVector.Data); l != 5 {
-		t.Errorf("the bitVector bitset should have length 5, was %d", l)
-	}
-	if bitVector.Any() {
-		t.Errorf("none of the bits should be set")
-	}
+	c.Check(len(bitVector.Data), Equals, 5)
+	c.Assert(bitVector.Any(), Equals, false)
 }
 
-func TestGetAvFromAfterSet(t *testing.T) {
-	// |0...000111000110111111100000....00000|
-	//                          |---get---|
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	t2 := t1.Add(15 * time.Minute)
-	t3 := t1.Add(45 * time.Minute)
-	t4 := t1.Add(55 * time.Minute)
-	ba := newBitAv(av.Minute5)
-	ba.Set(t1, t2, 1)
+func (s *BitAvSuite) TestGetAvFromAfterSet(c *C) {
+	s.ba.Set(s.t1, s.t1.Add(25*time.Minute), 1)
 
-	//w
-	bitVector := ba.Get(t3, t4, av.Minute5)
+	bitVector := s.ba.Get(s.t1.Add(45*time.Minute), s.t1.Add(75*time.Minute), av.Minute5)
 
-	//t
-	if l := len(bitVector.Data); l != 2 {
-		t.Errorf("the bitVector bitset should have length 2, was %d", l)
-	}
-	if bitVector.Any() {
-		t.Errorf("none of the bits should be set")
-	}
+	c.Check(len(bitVector.Data), Equals, 6)
+	c.Assert(bitVector.Any(), Equals, false)
 }
 
-func TestGetAvFromInsideSet(t *testing.T) {
-	// |0...0001111111111111111100000...000|
-	//          |----get-----|
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	t2 := t1.Add(15 * time.Minute)
-	t3 := t1.Add(45 * time.Minute)
-	t4 := t1.Add(55 * time.Minute)
-	ba := newBitAv(av.Minute5)
-	ba.Set(t1, t4, 1)
+func (s *BitAvSuite) TestGetAvFromInsideSet(c *C) {
+	s.ba.Set(s.t1, s.t1.Add(55*time.Minute), 1)
 
-	//w
-	bitVector := ba.Get(t2, t3, av.Minute5)
+	bitVector := s.ba.Get(s.t1.Add(25*time.Minute), s.t1.Add(45*time.Minute), av.Minute5)
 
-	//t
-	if l := len(bitVector.Data); l != 6 {
-		t.Errorf("the bitVector should have length 6, was %v", l)
-	}
-	if !bitVector.All() {
-		t.Errorf("all of the bits should be set")
-	}
-
+	c.Check(len(bitVector.Data), Equals, 4)
+	c.Assert(bitVector.All(), Equals, true)
 }
 
-func TestGetAvFromItersectBeforeSet(t *testing.T) {
-	// |00..000000001111111111100000...00|
-	//         |---get---|
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	t2 := t1.Add(15 * time.Minute)
-	t3 := t1.Add(45 * time.Minute)
-	t4 := t1.Add(55 * time.Minute)
-	ba := newBitAv(av.Minute5)
-	ba.Set(t2, t4, 1)
+func (s *BitAvSuite) TestGetAvFromItersectBeforeSet(c *C) {
+	s.ba.Set(s.t1.Add(15*time.Minute), s.t1.Add(55*time.Minute), 1)
 
-	//w
-	bitVector := ba.Get(t1, t3, av.Minute5)
+	bitVector := s.ba.Get(s.t1, s.t1.Add(45*time.Minute), av.Minute5)
 
-	//t
-	if l := len(bitVector.Data); l != 9 {
-		t.Errorf("the bitVector should have length 9, was %d \n", l)
-	}
-	if c := bitVector.Count(); c != 6 {
-		t.Errorf("6 of the bits should be set , %d were \n", c)
-	}
+	c.Assert(len(bitVector.Data), Equals, 9)
+	c.Assert(bitVector.Count(), Equals, 6)
 }
 
-func TestGetAvWithLowerResolution(t *testing.T) {
-	// |00..000000001111111111100000...00|
-	//         |---get---|
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	t2 := t1.Add(15 * time.Minute)
-	t3 := t1.Add(45 * time.Minute)
-	t4 := t1.Add(55 * time.Minute)
-	ba := newBitAv(av.Minute5)
-	ba.Set(t2, t4, 1)
+func (s *BitAvSuite) TestGetAvFromItersectAfterSet(c *C) {
+	s.ba.Set(s.t1, s.t1.Add(45*time.Minute), 1)
 
-	//w
-	bitVector := ba.Get(t1, t3, av.Minute15)
+	bitVector := s.ba.Get(s.t1.Add(15*time.Minute), s.t1.Add(55*time.Minute), av.Minute5)
 
-	//t
-	if l, exp := len(bitVector.Data), 3; l != exp {
-		t.Errorf("the bitVector should have length %d, was %d \n", exp, l)
-	}
-	if c, exp := bitVector.Count(), 2; c != exp {
-		t.Errorf("%d of the bits should be set , %d were \n", exp, c)
-	}
+	c.Assert(len(bitVector.Data), Equals, 8)
+	c.Assert(bitVector.Count(), Equals, 6)
 }
 
-func TestGetAvWithHigherResolution(t *testing.T) {
-	// |00..000000001111111111100000...00|
-	//         |---get---|
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	t2 := t1.Add(15 * time.Minute)
-	t3 := t1.Add(45 * time.Minute)
-	t4 := t1.Add(55 * time.Minute)
-	ba := newBitAv(av.Minute5)
-	ba.Set(t2, t4, 1)
+func (s *BitAvSuite) TestGetAvWithLowerResolution(c *C) {
+	s.ba.Set(s.t1.Add(15*time.Minute), s.t1.Add(55*time.Minute), 1)
 
-	//w
-	bitVector := ba.Get(t1, t3, av.Minute)
+	bitVector := s.ba.Get(s.t1, s.t1.Add(45*time.Minute), av.Minute15)
 
-	//t
-	if l, exp := len(bitVector.Data), 45; l != exp {
-		t.Errorf("the bitVector should have length %d, was %d \n", exp, l)
-	}
-	if c, exp := bitVector.Count(), 30; c != exp {
-		t.Errorf("%d of the bits should be set , %d were \n", exp, c)
-	}
+	c.Assert(len(bitVector.Data), Equals, 3)
+	c.Assert(bitVector.Count(), Equals, 2)
 }
 
-func TestGetAvFromItersectAfterSet(t *testing.T) {
-	// |00..000000001111111111100000...00|
-	//         |---get---|
-	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
-	t2 := t1.Add(15 * time.Minute)
-	t3 := t1.Add(45 * time.Minute)
-	t4 := t1.Add(55 * time.Minute)
-	ba := newBitAv(av.Minute5)
-	ba.Set(t1, t3, 1)
+func (s *BitAvSuite) TestGetAvWithHigherResolution(c *C) {
+	s.ba.Set(s.t1.Add(15*time.Minute), s.t1.Add(55*time.Minute), 1)
 
-	//w
-	bitVector := ba.Get(t2, t4, av.Minute5)
+	bitVector := s.ba.Get(s.t1, s.t1.Add(45*time.Minute), av.Minute)
 
-	//t
-	if l := len(bitVector.Data); l != 8 {
-		t.Errorf("the bitVector should have length 8, was %d \n", l)
-	}
-	if c := bitVector.Count(); c != 6 {
-		t.Errorf("6 of the bits should be set , %d were \n", c)
-	}
+	c.Assert(len(bitVector.Data), Equals, 45)
+	c.Assert(bitVector.Count(), Equals, 30)
 }
 
-func TestSetAvTwoYearsWorkingHoursShouldNotPanic(t *testing.T) {
-
-	ba := newBitAv(av.Minute5)
-	t1 := time.Date(1982, 2, 7, 9, 0, 0, 0, time.UTC)
-
-	defer func() {
-		if r := recover(); r != nil {
-			t.Error("SetAv should not have caused a panic")
-		}
-	}()
-
-	for i := 0; i < 2*365; i++ {
-		ba.Set(t1, t1.Add(8*time.Hour), 1)
-		ba.Set(t1.Add(8*time.Hour), t1.Add(12*time.Hour), 0)
-		t1 = t1.Add(24 * time.Hour)
-	}
-}
-
-func TestSetAvTwoYearsWorkingHoursBackwardsShouldNotPanic(t *testing.T) {
-
-	ba := newBitAv(av.Minute5)
-	t1 := time.Date(1982, 2, 7, 9, 0, 0, 0, time.UTC)
-
-	defer func() {
-		if r := recover(); r != nil {
-			t.Error("SetAv should not have caused a panic")
-		}
-	}()
-
-	for i := 0; i < 2*365; i++ {
-		ba.Set(t1, t1.Add(8*time.Hour), 1)
-		ba.Set(t1.Add(8*time.Hour), t1.Add(12*time.Hour), 0)
-		t1 = t1.Add(-24 * time.Hour)
-	}
-}
-
-func TestSetAvTwoYearsWorkingHours(t *testing.T) {
-
-	ba := newBitAv(av.Minute5)
+func (s *BitAvSuite) TestSetAvTwoYearsWorkingHours(c *C) {
 	t1 := time.Date(1982, 2, 7, 9, 0, 0, 0, time.UTC)
 	t2 := time.Date(1983, 4, 5, 0, 0, 0, 0, time.UTC)
 
 	for i := 0; i < 2*365; i++ {
-		ba.Set(t1, t1.Add(8*time.Hour), 1)
-		ba.Set(t1.Add(8*time.Hour), t1.Add(12*time.Hour), 0)
+		s.ba.Set(t1, t1.Add(8*time.Hour), 1)
+		s.ba.Set(t1.Add(8*time.Hour), t1.Add(12*time.Hour), 0)
 		t1 = t1.Add(24 * time.Hour)
 	}
 
-	bitVector := ba.Get(t2, t2.Add(24*time.Hour), av.Hour)
+	bitVector := s.ba.Get(t2, t2.Add(24*time.Hour), av.Hour)
 	expected := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}
-	if d := bitVector.Data; !bytes.Equal(expected, d) {
-		t.Errorf("data should be equal to %v, was %v", expected, d)
-	}
+	c.Assert(bytes.Equal(expected, bitVector.Data), Equals, true)
 
 }
 
-func TestSetAvTwoYearsWorkingHoursBackwards(t *testing.T) {
-
-	ba := newBitAv(av.Minute5)
+func (s *BitAvSuite) TestSetAvTwoYearsWorkingHoursBackwards(c *C) {
 	t1 := time.Date(1982, 2, 7, 9, 0, 0, 0, time.UTC)
 	t2 := time.Date(1981, 4, 5, 0, 0, 0, 0, time.UTC)
 
 	for i := 0; i < 2*365; i++ {
-		ba.Set(t1, t1.Add(8*time.Hour), 1)
-		ba.Set(t1.Add(8*time.Hour), t1.Add(12*time.Hour), 0)
+		s.ba.Set(t1, t1.Add(8*time.Hour), 1)
+		s.ba.Set(t1.Add(8*time.Hour), t1.Add(12*time.Hour), 0)
 		t1 = t1.Add(-24 * time.Hour)
 	}
 
-	bitVector := ba.Get(t2, t2.Add(24*time.Hour), av.Hour)
+	bitVector := s.ba.Get(t2, t2.Add(24*time.Hour), av.Hour)
 	expected := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}
-	if d := bitVector.Data; !bytes.Equal(expected, d) {
-		t.Errorf("data should be equal to %v, was %v", expected, d)
-	}
+	c.Assert(bytes.Equal(expected, bitVector.Data), Equals, true)
 
 }
 
-func BenchmarkSetAvOneDay(b *testing.B) {
-
-	ba := newBitAv(av.Minute5)
+func (s *BitAvSuite) BenchmarkSetAvOneDay2(c *C) {
 	t1 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 
-	for i := 0; i < b.N; i++ {
-		ba.Set(t1, t1.Add(24*time.Hour), 1)
+	for i := 0; i < c.N; i++ {
+		s.ba.Set(t1, t1.Add(24*time.Hour), 1)
 		t1 = t1.Add(48 * time.Hour)
 	}
 }
 
-func BenchmarkGetAvOneDay(b *testing.B) {
-
-	ba := newBitAv(av.Minute5)
+func (s *BitAvSuite) BenchmarkGetAvOneDay2(c *C) {
 	t0 := time.Date(1982, 2, 7, 0, 0, 0, 0, time.UTC)
 	t1 := t0
 
 	for i := 0; i < 2*365; i++ {
-		ba.Set(t1, t1.Add(8*time.Hour), 1)
-		ba.Set(t1.Add(8*time.Hour), t1.Add(12*time.Hour), 0)
+		s.ba.Set(t1, t1.Add(8*time.Hour), 1)
+		s.ba.Set(t1.Add(8*time.Hour), t1.Add(12*time.Hour), 0)
 		t1 = t1.Add(24 * time.Hour)
 	}
 
 	t1 = t0.Add(4 * time.Hour)
-	for i := 0; i < b.N; i++ {
-		ba.Get(t1, t1.Add(72*time.Hour), av.Hour)
+	for i := 0; i < c.N; i++ {
+		s.ba.Get(t1, t1.Add(72*time.Hour), av.Hour)
 
 		t1 = t1.Add(23 * time.Hour)
 		if i%365 == 0 {

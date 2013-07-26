@@ -14,6 +14,7 @@ import (
 )
 
 var port = flag.String("port", ":1982", "http port")
+var bitAvHandler = bitav.NewBitAvHandlerMem()
 
 func main() {
 	flag.Parse()
@@ -32,14 +33,14 @@ func createRouter() http.Handler {
 
 func deleteAv(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	bitav.DeleteBitAv(id)
+	bitAvHandler.DeleteBitAv(id)
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "")
 }
 
 func defineAv(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	bav := bitav.FindOrNewBitAv(id)
+	bav := bitAvHandler.FindOrNewBitAv(id)
 
 	var msg *struct {
 		From     time.Time     `json:"from"`
@@ -71,7 +72,7 @@ func retrieveAv(w http.ResponseWriter, r *http.Request) {
 
 	id := mux.Vars(r)["id"]
 
-	bav := bitav.FindOrNewBitAv(id)
+	bav := bitAvHandler.FindOrNewBitAv(id)
 	bv := bav.Get(from, to, res)
 
 	bb, _ := json.Marshal(bv)
